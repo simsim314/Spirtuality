@@ -1,10 +1,12 @@
+## Mathematics of the mind
+
 Our brain has the capacity to feel, understand and predict possible futures and states of other people around us. This means that our brain has natural capacity to simulate other people, and understand what happens in their mind. We do it not only by building complex models but also by placing ourselves in their place. This means that we try to learn from single example - which is our consciousness, about the others and we’re doing it quite well. Obviously some people understand others better, and some worse, but we all doing it to some extent. The ability to place ourselves in different possible realities, and answer to the question “how does it feels” - is the basic quality of using consciousness. 
 
-### Definition: Intuitive theory of mind (ITOM) is the capacity to answer the question “how does it feels”, for many different scenarios. 
+__Definition:__ Intuitive theory of mind (ITOM) is the capacity to answer the question “how does it feels”, for many different scenarios. 
 
-### Definition: ITOM score, is the average quality of the answer over all questions of the sort “how does it feels”. We obviously can’t measure it exactly but only approximately. 
+__Definition:__ ITOM score, is the average quality of the answer over all questions of the sort “how does it feels”. We obviously can’t measure it exactly but only approximately. 
 
-### Definition: Mind exploration is the practice that improves ITOM score by various means. 
+__Definition:__ Mind exploration is the practice that improves ITOM score by various means. 
 
 To be more practical, we can say that many people can write questions that based on a story of their lives, ask people to answer different question about them (making it american exam). Some people will on average score higher than others, those people have obviously better ITOM score. The claim in this book, is that it’s possible to work on this score, that the score is important, and that there is a language and exercises that help to think and simulate other people (including ourselves). 
 
@@ -14,13 +16,13 @@ Definition: Mathematical theory of mind (MTOM), is a theory which translates ITO
 
 Although there is no claim for complete MTOM, there is an attempt to formulate a mathematical language and to show the way to think about ITOM in mathematical terms. 
 
-### Definition: Consciousness center is treating our mind as a point in the center of the universe. 
+__Definition:__ Consciousness center is treating our mind as a point in the center of the universe. 
 
-### Definition: Consciousness distance is the subjective feeling of distance between ourselves, and some other “entity”. 
+__Definition:__ Consciousness distance is the subjective feeling of distance between ourselves, and some other “entity”. 
 
-### Definition: Consciousness explosion is an entity that enters the physical reality and influences many consciousnesses i.e. event, person or idea that becomes popular and “resonates” with many people. 
+__Definition:__ Consciousness explosion is an entity that enters the physical reality and influences many consciousnesses i.e. event, person or idea that becomes popular and “resonates” with many people. 
 
-### Definition: Consciousness speed is the speed by which our brain is capable to introduce new information into our mind. 
+__Definition:__ Consciousness speed is the speed by which our brain is capable to introduce new information into our mind. 
 
 ## Mathematical models. 
 
@@ -63,6 +65,6 @@ Also should be noticed that even if we have some blind spots, there is a languag
 
 Also one should notice that having a full knowledge of the universe, will not mean being able to grasp everything at single moment, rather than having an access to database where each situation we encounter in our lives is well explored. Our mind is optimizing everything there is to know about reality into mental models that helps us to function. From practical point of view, we don’t need to be present in singularity each moment of our lives, rather we should be able to think, talk and behave as if we would have full knowledge, yet there is a big gap between the ideal state, the ideal state which is relevant for optimal actions and behaviours, and sub ideal state which is currently available to us. 
 
-Conclusion 
+## Conclusion 
 
 The mind is striving to simulate reality around it the best way it can, to learn from the past and predict the future in order to optimize the course of actions. While a lot of resources are spent to understand and predict other minds as well as his own, using the best intuitive theory of mind it could get. The ITOM is evolving together with learning process about other aspects of reality.
