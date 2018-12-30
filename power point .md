@@ -52,3 +52,10 @@ Communities app where people from all over the world are communicating and havin
 
 World watch - make sure everyone in the world in real time are happy. In scale of thousand of people. 
 City sim city, and local communications. 
+
+Partial development appliaction: 
+
+Driving profile of drivers and their behaviours 
+Economics Non linear economics and modeling 
+Non linear programming language 
+Psychology profiles and make it much more scientific 
