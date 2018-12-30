@@ -50,3 +50,5 @@ People intuitive consiosness simulators best of humanity effort to understand it
 Sim city and simulating the future city project 
 Communities app where people from all over the world are communicating and having a good signal to noise ratio 
 
+World watch - make sure everyone in the world in real time are happy. In scale of thousand of people. 
+City sim city, and local communications. 
