@@ -8,6 +8,8 @@ If the group is well synchronized it can also send a representative it trusts, o
 
 Fight between two congruent systems has some very strict rules. They are the mother and father of good thinking habits humanity has learned from decades of experience. Here we collect them into a knowledge.
 
+
+
 Philosophical faults. 
 Irrelevance fault. Conspiracy theory, solipsis and dream argument that deny scientific knowledge. 
 Logical traps - theories that you can’t exit from after accepting them without heavy price. 
