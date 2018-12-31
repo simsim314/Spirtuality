@@ -6,6 +6,18 @@ Few examples. When I see youtube video I have to watch commercial. Commercial is
 
 Property that can be rent. This is an obvious thankfulness failure. Because someone had to build the building. This someone has been paid and given thanks by the property owner. But now he has infinite or close to infinite potential of money without doing nothing. As he bought the building he bought the thankfulness rights, but it’s unreasonable to take money for infinity. This means that paying money is by definition is also buying some of the sankfulness rights for the building. You can’t pay rent only to the owner, you also must buy or reduce the thankfulness. As people want to live in buildings and there is a market of it, i.e. paying for renting a building is basically saying thanks for the builders. But we can’t expect to pay infinite amount of time for the building, so old money should decay (i.e. inflation). Some of possible solutions: money can go to the community and other needs. Also might be thankfulness right can be transfered, and someone who builds buildings is actually the owner of the building and not the coordinator. The idea that the coordinator is the one who is most important because he says to everyone what to do and gets most of the money doesn’t sounds right. 
 
+Bad models of consciosness that create the current society: 
+- Neurotic apatist that don't care unless told 
+- Over rational thinker. Economics, game theory. 
+
+When you remove two this things from society (ego, interest, suspecsion and sitrust pressure) people become normal again. We're in a slavery regime right now. 
+
+You don't have to make profit. You need to feel okay and feel good and relaxed and fun and helkp others. 
+
+Why people are so pressured: because ecnomics is optimized for inflation so to cheat the inflation the owners are need to be maximally efficient. As this could only benefit the capital owners whis can lead either to absurd pressure in workplaces and more two the shareholders, or on the contrary people will work more and earn less like in britain 19 cetnury. This all leads to goverment intervention. 
+
+In thankfulness economy we just check out with the group in hand pressured it is on the new idea in development? We have consciosness economics with different non convertable systems, and people who are more pressured on some topic are getting higher priority because they vote more and place more money (time) to the aount of solving this topic, while the experts say what is the probability. 
+
 As a community we can say we need more buildings. But we should make sure this is okay for the global community. I.e. that we don’t destroy the earth currently. Another problem is that we understand we need to collect some of the money for the future projects, but as a community can we transfer some money from one to another? Lets say we have buildings and people are thankful for the buildings to the community. 
 
 land ownership. Community property. Nation is saying this land is ours. Inside this land which belongs to the people we can ask people to appreciate the effort, by paying to the army to protect the borders. This is what happens now basically. This all comes form the axiom you want to live in your own place, feel safe and know no one will knock on the door and push you out. This need in safety is basically thankfulness to security. 
@@ -26,3 +38,4 @@ Major real estate crisis. Having apartments is like having option to have money 
 Allowing to have only one/two apartments (artificial) 
 Allowing to translate into static option will make the total amount of money variable. 
 If there is an inflation you want to buy real estate. 
+
