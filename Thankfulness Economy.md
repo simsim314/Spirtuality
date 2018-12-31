@@ -18,7 +18,10 @@ Why people are so pressured: because ecnomics is optimized for inflation so to c
 
 In thankfulness economy we just check out with the group in hand pressured it is on the new idea in development? We have consciosness economics with different non convertable systems, and people who are more pressured on some topic are getting higher priority because they vote more and place more money (time) to the aount of solving this topic, while the experts say what is the probability. 
 
-As a community we can say we need more buildings. But we should make sure this is okay for the global community. I.e. that we don’t destroy the earth currently. Another problem is that we understand we need to collect some of the money for the future projects, but as a community can we transfer some money from one to another? Lets say we have buildings and people are thankful for the buildings to the community. 
+And the pressure in a workplace is balanced by the people who say - we need it now. No! we really need it now! not tommorow not in 5 ears yesturday, because someone is feeling very bad now. There is a real reason. 
+
+
+As a community we can say we need more buildings. But we should make sure this is okay for the global community. I.e. that we don’t destroy the earth currently. Another problem is that we understand we need to collect some of the money for the future projects, but as a community can we transfer some money from one to another? Lets say we have buildings and people are thankful for the buildings to the community.
 
 land ownership. Community property. Nation is saying this land is ours. Inside this land which belongs to the people we can ask people to appreciate the effort, by paying to the army to protect the borders. This is what happens now basically. This all comes form the axiom you want to live in your own place, feel safe and know no one will knock on the door and push you out. This need in safety is basically thankfulness to security. 
 
