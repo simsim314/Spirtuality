@@ -20,6 +20,9 @@ Violence against avatar. Don’t let people to dictate yourself. You chose who y
 Enforcing policy which is not mandatory and irrational (like forcing correct english which has no reason it’s just random point in time that got canonized). Letting language and its syntax evolve naturally and improve evolutionary with other syntax. 
 Infinite loop: asking why, why, why - and proving points by this ed nauseam
 
+Arguments and language problems which when translated into science make no sense. For example criticizing the other without showing alternative is better. 
+
+Bringing the option as fact while it's an intuition. Every statement should be assumed with probability, and no single truth only up to some error. 
 
 One should argue up until they fall into faulty. When you fall into logical contradiction, you out. We can allow logical contradictions just for fun to see what happens. But usually the default in dojo is those rules. 
 
