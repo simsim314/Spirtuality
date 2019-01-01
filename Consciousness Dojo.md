@@ -63,4 +63,4 @@ Practice group debugging
 Group-Person debating 
 Group-Group debating 
 
-
+Like filosophy but with ed hominem. And we develop special syntax which can be proved and we will specially prove it mathematically to increase the signal between groups. Like no avatar violance, and freedom to define avatar. You can play with many polytops as you like, and you need to prefix the polytop without assuming the language is default. You can introduce new words, and people in the dojo will open their mind to other simple things, expanding their words and their understanding of possible realities. Because it's limited in our lifetime. 
