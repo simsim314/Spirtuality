@@ -85,4 +85,5 @@ I mean treating our conscsiousness as it was a virtual reality, and we play in i
 
 Reinterpret math without induction. 
 
-
+Another thing is the fault of self reference which is infinitelly growing by it's own referencing. For example think now million times
+this same thought. You can't make it because thining million times a thought is impossible in this time. But you might be able to say imagine!Million years. So although you can't imagine this so well in 2 seconds,, and we know it's not the same capacity we can allow knowing it's a fault but with lower resolution, or we can say - we should count down our mistake. So if I say one million years and it didn't pass, you can say the ratio is about 1 to 10^8. So this is kinda allowed because it's finite, but we calculate the ineherently impossible gap to close, because we're kind of stupid - not so talanted as we thought. So having another like this is addition. But if I say think about million virtual windows. And I know I made mistake once, but the next time is not addition bu multiplication. 
