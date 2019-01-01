@@ -73,10 +73,16 @@ Like filosophy but with ed hominem. And we develop special syntax which can be p
 
 - You can also write |envernomn|Statement| and |Alice|My name is allice| or |simsim314|Ma name is misha|. And this will mean that I have opened a simulation, where I can say -my name is misha, and this simulation, this virtual window name is simsim314. 
 
+- Tree split - uncertainty [statment1, statement2]. Tree split continiuous (statement1, statement2)
+
+- comment to return to. like in math (4)
+
+- Tracking back syntax. |(4)|Avatar B|statement|. Go back in tree to (4) and think what would B say. This is the conclusion.  
+
 The rule is at the moment you switch Avatar you say. And you can close virtual window. So Alice.open. Statements about alice, Alice.close. And we assume each conscsioness is running it's own virtual env. So the default is physical reality. Unless someone wants to change its default. 
 
 I mean treating our conscsiousness as it was a virtual reality, and we play in it very well. And optimize to pass information in debates. 
 
-
+Reinterpret math without induction. 
 
 
