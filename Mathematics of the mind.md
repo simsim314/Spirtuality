@@ -36,6 +36,11 @@ Another way to think about mindis using universality from computational theory. 
 
 Universal simulator can also be regarded as universal learner. As our mind has limited capacity, it’s not trying only to maximize memory of past events, but also to learn from the past. To generalize singular events into theories, in order to predict and understand mechanisms present in reality. This learning process is based upon universal approximator which is available to every neural net. By creating mental models, our mind is not only trying to explain and analyze the past but also to get a good understanding and ability to predict the future. So the mind is universal simulator but it’s doing so by using universal approximator in order to achieve maximal accuracy of prediction. 
 
+### Sentence space 
+Every word or sentence limited by amount of words can be viewed as large vetor space, where every sentece has its own dimension. Senteces you agree with could be viewed as elipsoid, with weight which is degree of you agreeing to the sentence. Two people are the intersection of those two elipsoids. People like Bibi must to agree to everyone and therefore mainain least dimensions. As time passing by, new senteces are said - and it can be seen as dimension expantion. 
+
+Polytope approach is a plane with people represented as point who divide them into agree-disagee half spaces. Every pesrson is thus a polytop of sentences with which he's agree with. Social pressure is clustering in this representation. 
+
 ### Dimension expansion model
 Another mathematical way to think about mindas a constant attempt to exit to a new “dimensionality”. Think of a blind person from birth. He’s incapable to simulate others who see. He “knows” they are capable of seeing but he has no internal reference to this experience. For him everyone around are blind like him. This sort of blindness is common. For example people who have no sexual desire, will be able to observe attraction and predict behaviour but will not know what people around them actually feel, as they have no internal reference. In a subtle way we project upon others our own experiences and internal states, and our ability to answer the question “how does it feels”? Is very limited by our experiences. Every new reference experience is expanding our knowledge of the possibilities to feel different things. So mind can be viewed as point in vector space of very big dimension, which attached to some hyperplane. And every new reference experience is adding another dimension to this hyperplane, which allows exploration of life in another dimensionality. While simulations of other people, are always projected to the hyperplane limited by our current reference experiences. 
 
@@ -55,6 +60,8 @@ You can see that focus of attention in groups is divided by some hierarchy aroun
 ### Social model:
 
 Another example to think about groups and individuals is by using different social structures, and think about them as different creatures. The point is to increase the variaty of social creatures and make usual and normal evolution of them, using mathematical tools. Think democracy, anarchy, socialism, communist - and simulation-cracy. 
+
+
 
 ### Comparison of the models
 The first two models, were referring to “ideal” consciousness. The strive of mindfor universality or singularity. But The last model was talking about practical limitation of doing so and the need in internal references. Mathematically speaking we’ve limited the mind from below and from above, we understood it’s limitations as well as it’s ideal state which is impossible to reach but it’s the asymptote where it converges. 
