@@ -64,3 +64,19 @@ Group-Person debating
 Group-Group debating 
 
 Like filosophy but with ed hominem. And we develop special syntax which can be proved and we will specially prove it mathematically to increase the signal between groups. Like no avatar violance, and freedom to define avatar. You can play with many polytops as you like, and you need to prefix the polytop without assuming the language is default. You can introduce new words, and people in the dojo will open their mind to other simple things, expanding their words and their understanding of possible realities. Because it's limited in our lifetime. 
+
+- Syntax trick 1. I have my words you have your words and we try to understand the difference and invent new words to explainand express the meaning better. 
+
+- For example it's usually not expected from the reader to take certain position but it's possible. Please stand up now. And churches do it. And this adds syntax meaning to language. It's enforced, but it's also adds some body language which is another communication divice to the reader. So we can say Do this action, DTA and expect the writer and the reader to synchronize on the ropic. And if the reader is not in sync, it's like he is simply considered not readed at all. Like it's a mistake readin this sentence this way.
+
+- It's also not always black and white and this is why we can add |x|(probability). For example |not everything is black and white|(0.9). This means my certainty 0.9. 
+
+- You can also write |envernomn|Statement| and |Alice|My name is allice| or |simsim314|Ma name is misha|. And this will mean that I have opened a simulation, where I can say -my name is misha, and this simulation, this virtual window name is simsim314. 
+
+The rule is at the moment you switch Avatar you say. And you can close virtual window. So Alice.open. Statements about alice, Alice.close. And we assume each conscsioness is running it's own virtual env. So the default is physical reality. Unless someone wants to change its default. 
+
+I mean treating our conscsiousness as it was a virtual reality, and we play in it very well. And optimize to pass information in debates. 
+
+
+
+
