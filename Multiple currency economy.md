@@ -1,0 +1,1 @@
+In this approach we say that we can use regular economics or any other economics, we chose to use and was invented previously. For example we can already chose focus economics, thankfulness economics, regular currency, elo rating arounf many interests etc. 
