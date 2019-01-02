@@ -1,5 +1,23 @@
 This is a dojo just like in martial arts, but with strict rules and scoring system. 
 
+###
+
+The intention to create intime dojo where everyone knows everyone, and tries to learn to think in a certain way, which I call hive way of thinking. In the dojo we learn to be like a hive. Science is an example of a hive. We want to create hive thinking (about life and stuff - and have fun with different analysis of shows, events, arguments). We start to develop intuition of what is a good way of thinking in the modern era (for example stop arguing about reality - ask scientists). Learning to build correct arguments, having rules against avatars privacy and violance, respecting each other avataric space (if I say I'm an elephant you should not laugh but to try and destroy this claim in a sofisticated manner). Making different logical faulties and avatric faults, back tracing and debugging techniques, as well as tracking different themes from different shows, debate them understand them. 
+
+In hive dojo we have several modes. 
+
+Qeustion answer. The asker is saying I'm lost - please hive help me. And he should summarize what he understood, and what he didn't and with what conclusions he came out. As other members of the hive will use this information further, that someone. Just to help the hive sync. 
+
+Fight. It's a place where everyone are tracking and commenting and analyzing. Every fight is also scored by the hive. Suggestions are made to improve. 
+
+Discussion. In the end the disccusion initiator is expected to give a short report to the hive of what happened.
+
+Every week we will release bigger news of our dojo. Like what we understood, what went wrong what right. To help everyone to track the hive, on different time scales. And our hive is not forcing everyone to be the same, but on the contrary aloowing everyone to define themselves in all mathematical options of all interactions. It maximizes coherence and variance bu still in a finite space of options. 
+
+People here are expected to come and practice from time to time in the physical dojo, but also to practice here in the group. If a person is completelly not commited he can read but not write, and if he writes he either commits to learning curve, or commits to not making mistake, or I remove him out of the group as an admin in Zukerberg reality. 
+
+###
+
 Two modes - fight and analysis. Just like in chess. 
 
 Fight has rules. Analysis can be done with a whole group. And a person can explain what he learned from the experience by fighting a group. The group is also a collective mind can respond in very simple democratic or other ways, and can strive to coherence. If a group is not coherent you find a person who is not coherent. Try to see where the graph has been broken and how this happened inside group dynamics that it’s not consistent although each person is. The simplest case is a triangle. How do you solve the conflict between three people? You need to synchronize them for the group. They need to realize their personality is fucking up the system locally and the system should work on this problem by practicing tree growth. All this is solvable although it might be hard to solve and some problems might arise from democracy. 
