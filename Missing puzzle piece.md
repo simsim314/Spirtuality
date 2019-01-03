@@ -19,5 +19,5 @@ Anyway understanding groups is harder. Yet still some exercise can be done, for 
 
 Eventually the group will be coherent enough so that it could make democratic elections and communicate coherently with some other coherent group. 
 
-We never even started to solved group coherence problem - because we always used violance at some point and accepted it as a given thing. Sociologist should answer this better: how well are we advanced in group coherence problem? 
+We never even started to solved group coherence problem - because we always used violance at some point and accepted it as a given thing. Sociologist should answer this better: how well are we advanced in group coherence problem? So that two groups could talk and ask qeustion and give answers? Anyway we can have a dictator that will have insternal currency with the hive, to pay money if he's with lower coherence with the group, but with higher logical consistency so that anything will make any sense. This economy could be solved - because you can sometimes contradict yourself if it's not that crucial for other topics, if the hive is very very pressuring you and to the contrary you can force the hive to bow to you at some point, because you can't manage this kind of society where nothing make any minimal sense to you, and decisions are imporssible to make. 
 
