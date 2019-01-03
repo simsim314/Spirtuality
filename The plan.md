@@ -1,4 +1,4 @@
-5. Ideas which move in parallel. 
+Several Ideas which move in parallel (currently 5). 
 
 1. Dojo. A place where people learn to build valid arguments, define themselves and their opinions, make a real filosophical disccussion with ed homined, and without violance against avatars. Dojos will have some measruments and competitions between them. 
 
