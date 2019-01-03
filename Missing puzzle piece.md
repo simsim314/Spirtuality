@@ -8,8 +8,8 @@ Greko-Tibetan hive is an elite group of people, built out of consciosness ginius
 
 The top Elo rating elites, are becoming part of higher order society (in our case we don't need an elite just weight for higher hiveness realisation). This elite is actually very good at understanding people, and they learn to not only understand but 4 topics: 
 
-1. Understand people. 
-2. Understand two people and help them to resolve conflicts between them. 
+1. Understand people, and help them resolve internl conflicts. 
+2. Understand two people and help them to resolve conflicts between themselves. 
 3. Understand groups of people and know how to make the group coherent. Even for large groups. 
 4. Group communication. 
 
