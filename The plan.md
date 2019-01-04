@@ -2,7 +2,6 @@ Several Ideas which move in parallel (currently 5).
 
 1. Dojo. A place where people learn to build valid arguments, define themselves and their opinions, make a real filosophical disccussion with ed homined, and without violance against avatars. Dojos will have some measruments and competitions between them. 
 
-(-1, 1.3.19.Simkin)
 2. Startup. Using scientific knowledge that already exist and we will improve together with the academy hopefully. (Need to think more) 
 - Help the field of self drigin cars on real roads today. Need math model of human behaviours and understanding of people. 
 - Office management, and office self management as a group. 
@@ -11,6 +10,7 @@ Several Ideas which move in parallel (currently 5).
 
 (+1 ziv)
 3. Hives. An app that implements the knowledge of group comunication and creates virtual dojos. 
+- Maybe write a book as book is 1 month, and then we will go from there. 
 - Self definition as avatar. You can represent any idea. 
 - Group coherence. People talk to each other from the group to define the limit between themselves and the group and help the group to define itself through primitive tools of opinion polls, elections, representatives of the group. 
 - The information flow is from bottom up, people learn about the group, speak to random people from that group, and generally care about the group they are part off. The information flows up, upvoted by the group to self define it better, and solve it's problems better. It's all dynamically "hivy" configurable. 
