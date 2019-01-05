@@ -10,6 +10,9 @@ Several Ideas which move in parallel (currently 5).
 
 (+1 ziv)
 3. Hives. An app that implements the knowledge of group comunication and creates virtual dojos. 
+
+- Everything hivable in hives 
+- People start to think about themselves as file in folder of humanity, and start to explore humanity itself by the methods of you, me, you and me, and group. 5 minutes a week you speak to random person from the world, and see the hive emerging. This is basically a meditatoin on seeing the hive of humanity all the time. 
 - Maybe write a book as book is 1 month, and then we will go from there. 
 - Self definition as avatar. You can represent any idea. 
 - Group coherence. People talk to each other from the group to define the limit between themselves and the group and help the group to define itself through primitive tools of opinion polls, elections, representatives of the group. 
