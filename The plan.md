@@ -62,6 +62,11 @@ Several Ideas which move in parallel (currently 5).
 
 -4. Groups. Define, explore, measure things about them. (sociology)
   - Measure group coherence. 
+  -- One should ask memebers of the group what they think about X 
+  -- One should ask as well what would people answer: what everyone think about X. How are we divided.
+  --- We could ask first what do you think majority thinks, and what percintile. 
+  -- Strugle to minimize the difference 
+  
   - Check if the group has well defined self definition. 
   - Help the group to become more coherent. 
   - Debug decoherence and develop tools. (graph theory + sociology)
