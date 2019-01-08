@@ -1,6 +1,10 @@
 Several Ideas which move in parallel (currently 5). 
 
+0. Coherence therapy. It's a therapy that helps people to make some meditations, meta thinking, good thinking habbits, and use their thinking in order to solve their own problems, or understand their own place in the universe and stuff. People might be somewhat confused or not sure about their thinking habbits, and I can help, to make their thining patterns clearer and withuout noise. Using science and a therapy I invented. I don't use it on "patients" only people who are willing to talk and pay me money for that. 
+
 1. Dojo. A place where people learn to build valid arguments, define themselves and their opinions, make a real filosophical disccussion with ed homined, and without violance against avatars. Dojos will have some measruments and competitions between them. 
+
+Dojo can become a ground to debate. Debate can be translated and popularized. We will make an "anti" movement to something which is very stupid, we will make videos with answers to the most stupid claims, and we will turn into the streets and will demand to stop the madness about radical vegiterianism, the same way they are there to agitate for them. Making it social movement of reason and real debate, and will invite vegeterians for the debate and show them wrong, and this is the debate dojo. 
 
 2. Startup. Using scientific knowledge that already exist and we will improve together with the academy hopefully. (Need to think more) 
 - Help the field of self drigin cars on real roads today. Need math model of human behaviours and understanding of people. 
