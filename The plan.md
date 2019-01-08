@@ -8,6 +8,27 @@ Several Ideas which move in parallel (currently 5).
 - Parenthood, learn to communicate and understand your child. 
 - Sim city for metropolitens. 
 
+2.5 Teleshow about making the first hive mind. 
+
+- In production we need 1K volonteers for 10 days camp. 
+- Each volounteer is asigned to a group. There are 10 groups. Those groups are seperated. 
+- They learn to understand other people and listen to them. They learn to make questionaiers about themselves that divide the group into two parts. Basically people from the same group are burned for the experiment's statistics. 
+
+- Now we shuffle people. Create 10 new groups and now starting to pass information about each other. 
+- Now this means we need to make everyone in the new shuffle new to each other. 30 groups of 30 people. 30 people is 6 x 6 we still should see the signal due to 30 groups. 100x100 to simulate 10x10. And see the information about people is flowwing and has a rate. This is not trivial that we are also an information flowing in other's people head and the resolution can be measured, and function of a distance. 
+
+- Show people how to make experiments. Explaining the science behind it. 
+- We will consult scientists, on how to represent graphs of knowledge about people, and detect the geniouses of simulation other people. 
+
+- Then we will show intuitions of people about people. 
+- Then we will show the aduiance they are also a hive mind, and we will use an app to call and make a suggestion about something. 
+- We will locate the best people doing this. Invite them to the show, and make it much more clear signal of hive mind and collective group consiosness in live. 
+
+- Then we will ask people to define their group, and we will ask them to act as a group of people. This will also be in live. 
+- Then we will make conversations with this group as like it was a real living being very similiar to a "real" collective mind which makes sense. People will be able to chat with him. 
+
+- This will be on flix. 
+
 (+1 ziv)
 3. Hives. An app that implements the knowledge of group comunication and creates virtual dojos. 
 
