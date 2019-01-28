@@ -22,7 +22,7 @@ Now I assume that we can define variables and make loops inside a leaf (but loop
 Create variable x = 0. 
 Loop(101):
 x = Add(x, 111) (here we call the root with command, 0, (x, 7), 1 and wait)
-return x
+call root "print command" x
 
 Now in order to call some other function, we need to have an inherent capability of every leaf to send message to the root. How this is done is beyond the scope of this issue, but in practice in CAs this is doable. So for example if someone asks some function to calculate something, it sends request to the root, and each smart enough leaf will know to send back to the root the result stream of the type: 
 
