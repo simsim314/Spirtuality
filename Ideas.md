@@ -87,3 +87,4 @@ With the hat and cube made of mirrors and my white
 - The army devolution 
 - The only mistake people make: reality is adude. A dude which is forcing you. Imagination is escape of this dude. But before escaping we should understand him very very well. We just need to stop make our master in our image and make him better or nicer than he truly is/
 - I can't understand myself - but I can understand myself under the limitation of being in very short time interval where shorter time intervals have no meaning and at the moment the time came into being - I can basically grow exponentially in theory this is possible to maintain for a while, this growth. And this is what drugs do - if we live in a reality where drugs 
+- Living in very large scale CA. I don't understand that well the design, of 10-35 of the automaton but if so this is possible. Maybe we can reduce physics to CA
