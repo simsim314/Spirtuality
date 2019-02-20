@@ -88,3 +88,15 @@ With the hat and cube made of mirrors and my white
 - The only mistake people make: reality is adude. A dude which is forcing you. Imagination is escape of this dude. But before escaping we should understand him very very well. We just need to stop make our master in our image and make him better or nicer than he truly is/
 - I can't understand myself - but I can understand myself under the limitation of being in very short time interval where shorter time intervals have no meaning and at the moment the time came into being - I can basically grow exponentially in theory this is possible to maintain for a while, this growth. And this is what drugs do - if we live in a reality where drugs 
 - Living in very large scale CA. I don't understand that well the design, of 10-35 of the automaton but if so this is possible. Maybe we can reduce physics to CA
+- Morality is only a prat social psychology. Like single individual. 
+- The ideas from the app about social structures. 
+
+Mathematical ideas: 
+
+- The idea that symbolism is meaning. Look when you take 010001101 you know nothing. Only when you wrap it into classes then it start to make sense. You need a compiler a meaning which is more than 0-1 something which knows to read the 01 and make it do work. Something like GOL rule. 
+- the recursive defenition of operation. +, * ^ etc so we can write 17, 17, 17 - and mean the 17th order operation between the two. 
+- Chess games of N people vs N people white vs black, each side moves his pieces, each person is responsible of k pieces on the board and only he can move his pieces. 
+- Recursive definition of 17, 17,..., 17 as follows: 17 is a number. You search google for 17 you get the 17 th result. This will be called 17, 17. Now you can do it for any symbol. For example 16 times 17. when you search google for this symbol the 17th result. Yet it's still not recursive. 
+
+- Factor of resolution. In  the moment you don't see everything. The factor of resolution is limitation to understand other beings completelly. We see evrything with limited resolution and we miss something all the time. 
+- Chip geometry like see also chip of the 21st century 
