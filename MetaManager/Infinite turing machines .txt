@@ -1,0 +1,16 @@
+Infinite turing machines: 
+
+- Cauchy sequence and the printing paradox. I'll print more than pi calculator yet pi calculator will converge to pi. There is no way to eliminate the information of cauchy sequence to know how it was generated using infinite steps. 
+- The naive oracle to the hauting problem does not exist. 
+- Modifying the oracle to give the answer to any "answerable"  question which we will define as well. 
+
+------
+
+There is no YES/NO oracle indeed. 
+There exist YES/NO/Didn't converge oracle. Answering all possible questions to answer which are not divergent. 
+- Sketch of the proof: 
+-- Matryoshka of simulations, garderd by another turing machine. 
+
+How oracle that returns string will look like? 
+
+Philosophical implications: can God be defined as this oracle? 
