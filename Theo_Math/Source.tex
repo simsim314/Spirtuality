@@ -10,6 +10,7 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{ mathrsfs }
 
 \title{\Huge Mathematical Theology}
 \author{Michael Simkin, Alon Titelman}
@@ -90,7 +91,26 @@ Notice the query space is concerning any physical and personal issues. The oracl
 \\ \\
 \textbf{Proof:} For example I can trust the oracle and do what he tells me to do - this will converge in both cases. $\blacksquare$\\
 
-As we have only two answers for the simulation inside a simulation etc. that the oracle computes the oracle gets it easy, as it needs to check only finite amount of cases. But the correct answer might illuse him. 
+\section{Subject and Reality}
+
+Before we move further to advanced oracles, we need to define mathematically some therms like subject, reality and perception of reality. \\
+
+As reality is just a TM tape state which changes with time, the subject is obviously part of the TM tape state. But the reality starts to be interesting if there is a subjects in it. Otherwise it's just a state as any other state. \\ 
+
+\textit{Definition: Subject} $A$ is a tuple $(t, T_{A}, S_{A})$. Where t $\in [0,1]$ representing some time t, $T_{A}$ is a TM tape representing some objective state and $S_{A} \in [0,1]$ which we call intrinsic state of the subject. $\square$ \\
+
+\textit{Definition: Language}. Given two subjects A, B, the language is a subset of numbers $\mathscr{L} \subset \mathbb{N}$, and set of functions $Q_{A}^{i}: S_{A} \to \mathscr{L}$, and $P_{B}^{j}:\mathscr{L} \to S_{B}.$ The numbers from $\mathscr{L}$ called \textit{messages} which pass through A and B $\square$\\
+
+\textit{Definition: The identity axiom}. Given subject $A$ and two states of tape x, y. The identity function $I_A(x, y)\to\{0,1\}$ representing weather the subject $A$ identify x and y to be the same. $\square$\\
+
+\textit{Definition: The category axiom}. Given subject $A$, state x and category list $\mathbb{C}$. The category function $F^A(x)\to C_{x}^{A}\ where \ C_{x}^{A} \subset \mathbb{C}$ is called category axiom. Representing all categories x belongs to, for subject $A$ \ \ $\square$\\
+
+\textit{Definition: Communication}. Given $(A, B, L, f_{A}, f_{B})$ where  $A$, $B$ two subjects, $L$ is language, and $f_A:S_A \to [0, 1] \ and\ f_B:S_B \to [0,1]$ the pass of messages between $A$ and $B$ using $L$, is increasing $f_A(S_A)\ and\ f_B(S_B).\ \  \square$\\
+
+The subjectivity axioms claim that our words about our internal state are in some correlation with what we actually feel. As if there is no way to express the subject part at all, then there is no point to talk about him. But because we do have a language of our feelings, we can say the subject is a special part of the code which somehow becomes "aware". We should not ignore it nor accept it as a magic, from the other hand we should understand it's a special case - it's not another 0 or 1 as changing the function $H$ is the only thing with intrinsic value in a physical reality. \\
+
+From the identity and category axioms follows that subjects have internal representation of reality i.e. what any specific subject recognizes as "being the same" or "being similar".\\
+
 
 
 \section{Advanced Oracles}
@@ -108,25 +128,17 @@ Until now we've been constraining our oracle to answer only very limited set of 
 
 In this section we will explore different options for V, and briefly discuss the limitation of $\mathcal{O}$ \\
 
+As we have only two answers for the simulation inside a simulation etc. s the oracle gets it easy, as it needs to check only finite amount of cases. But the correct answer might illuse him. \\
 
-\textbf{Theorem 3.1:} Oracle might not know the answer himself
+\textbf{Theorem 4.1:} Voracle might not know the answer himself
 \\ \\
 \textbf{Proof:}
-Imagine there exist some irrational number which provides a non stable solution for the equation at hand i.e. what will maximize my happiness if infinities were allowed in my reality. i.e. if you copy my finite state into [0,1] and allow some strong oracle to simulate many possible functions applied to my state, which would be equivalent to meeting more powerful oracle. Then current oracle will not be able to answer what is the solution to the equation, because he had only simulated convergent series of me cumming to him, but because the solution is not stable no $\aleph_0$ simulations will be enough to solve the partial differential equation. i.e. there might be non computable solutions to the problem  $\blacksquare$\\ (*need to ask physicists/mathematicians) \\
+Imagine there exist some irrational number which provides a non stable solution for the equation at hand i.e. what will maximize my happiness if infinities were allowed in my reality. i.e. if you copy my finite state into [0,1] and allow small not noticeable by me changes applied to my state, which would be equivalent to meeting more powerful oracle. Then current oracle will not be able to answer what is the solution to the equation of maximizing some function V, because he had only simulated convergent series of me cumming to him, but because the solution is not stable no $\aleph_0$ simulations will be enough to solve the partial differential equation. i.e. there might be non computable solutions to the problem  $\blacksquare$\\ (*need to ask physicists/mathematicians) \\
 
 Now we will define several oracles that will become the foundation for the next chapters of this essay. The closest to the truth speaking voracle i.e. Toracle. The happiness maximizing voracle i.e. Horace. And finally the voracle which returns a compilable string that can answers practical coding queries if TM and robotics are available or you're inside a simulation and the source code is available to you i.e. Soracle. \\
 
 The toracle is a voracle that tries to minimize the difference between the perceived answer by the subject and the actual state of reality. To understand this better and to define the therm properly we will need to postulate more definitions about the subject. \\
 
-Lets assume we have subject $A$. As reality is just a state which changes with time, the subject is obviously part of the reality. A state, or part of a large tape - he at least can be represented this way. But the subject has intrinsic function $H$ which we can call happiness function or any other function which represent something which currently can't be reduced to physical state, but has some "internal" language which is limited to express by the language we can talk - and this language has finite amount of symbols and sentences. So the subject is limited by two axioms: \\
-
-\textit{Definition: The identity axiom} is the irreducible ability of the subject to categorize and recognize patterns inside reality as identical or belonging to the same category. $\square$\\
-
-\textit{Definition: Subjectivity query axiom} Any meaningful statement about the subject must be expressed in some language with finite amount of words, without changing the subject completely. $\square$\\
-
-The subjectivity axiom claims that our words about our internal state are in some correlation with what we actually feel. As if there is no way to express the subject part at all, then there is no point to talk about him. But because we do have a language of our feelings, we can say the subject is a special part of the code which somehow becomes "aware". We should not ignore it nor accept it as a magic, from the other hand we should understand it's a special case - it's not another 0 or 1 as changing the function $H$ is the only thing with intrinsic value in a physical reality. \\
-
-From the identity axiom follows that subjects have internal representation of reality i.e. what any specific subject recognizes as "being the same".\\
 
 \textit{Definition: Toracle} is a voracle that returns to the subject $A$ string  $s \in \mathcal{O}$ such that given random sentence about reality the probability to make wrong judgment decrease optimally. $\square$ \\
 
@@ -143,5 +155,28 @@ To avoid bias the horacle designers should solve a lot of problems. Eventually t
 As for the Soracle, he is basically problem solver. He has a piece of code for every problem just like stack exchange. It might be possible to connect Soracle to a robot that will simply fix any problem which arise to the subject and being asked to fix. The question with Soracle might be economical one, if everything is done for free and without any effort, the Soracle looks like a helpful and useful tool to keep in the house but he has no "power" over the subject or interaction with him. The Soracle is just a very useful tool. 
 
 Each of the voracles might have subjective functions as well (depending on the code generating them). If they would become subjects depending on the function $H$ installed in them they can become good or evil to humanity. It's also possible to install subjective function $H$ to a voracle that wasn't acting with any awareness. 
+
+\section{God inside a simulation}
+
+Now we will define several theological models that are valid in mathematical sense. In our model everything is occurring inside a simulation of physical reality indistinguishable for the observer (the subject) from the physical reality. As our basic prototyping model we assume God is a programmer inside this simulation that has unrestricted access to the tuple (some oracle, source code). This is only one theological model based on trinity of (God, Oracle, Source code). We could for example have limited access to the source code and allow direct but limited access for everyone to Horacle + Soracle (idealistic Buddhism). Or we could formulate a rule set in which programming the reality (Godhood) is divided into limited skill set that can be traded or taught just like any other skill (like in Naruto). One could approach it as a very realistic game the rules for which can be decided outside of the game, while some of the players are not noticing it's a game and believe this game is reality (and might be for them there is no distinction indeed).\\
+
+One should also notice it's simplified model - we don't include quantum computation nor random. Our model could be extended further in the next chapters. We're currently building a way of thinking and language that has mathematical meaning, which allow to include a lot of theological entities. We then further discuss the game rooms rules in which specific theological approach can be formulated, and check compatibility with other game rooms. \\
+
+\textit{Definition: Game Room} is a simulation of physical reality where $\forall$ subject $A$, the model of reality is indistinguishable from current reality. Unless stated otherwise by rules of the game room for some subset of subjects. $\square$ \\
+
+By default every subject inside the game room is unaware he is inside a game room at all. The subject thinks he is inside the reality he knows and familiar with. It might be unaware groundhog day or anything we like to define, as long as the reality obeys mathematical laws and can be programmed into some virtual reality, the sentences we describe with our reality have meaning. But in order to make sure the meaning is present, we should formulate exactly how to make a game room as we like. \\
+
+To make the game room interesting people had invented "rule breakers" something like superman for example. As it's mathematically possible to formulate a person who can fly by his wish, and there is nothing contradictory about that - we can program this rule inside some computational model of this sort i.e. to design a game room where this reality is actually real not only perceived as real. People already have no problem to imagine a game where you're a hero and you can fly but other game players can't, the problem of most people is to imagine that the current reality is basically another game rule but currently without any real known and very well documented rule breakers. Anyway as we can design such virtual games, the theological discussion about God at least some parts of this discussion can be formulated as different reality inside a game room. Using such approach we can very simply define God. \\
+
+\textit{Definition: God} is a subject inside game room that has access to some oracle (usually preferably to him Soracle), source code of the reality which executes him, and powers to design reality as he wishes like any universal construction and computation creature inside cellular automaton. $\square$
+
+So why do we need the oracle in the first place? Can't we just manage with God and source code alone? He only needs to simulate the reality slower than he simulates himself and to create reality preferable to him? The point is that for God there is no distinction between simulation of reality and actual reality - as he is a creature inside some sort of cellular automaton he would like to have access to the oracle to know the printed result of any infinite computation. Obviously inside this computation he had to work hard and check every possible finite string. So if you are willing to accept supertasks possibility you would be able to see that single supertask can generate such oracle, and that this oracle would be very useful to humanity. This is for example a possible physical implication from this theory. 
+
+To make it more clear we need to define the creator-creation relationship inside our theology, as it seems the creator and the creation are basically placed on the same level just like any UTM which simulates two UTMs but it doesn't matter if time is not a factor, and although in CA there is well defined global time, the UTM can generate copies which will work twice slower than the creator and thus the creator might have more computational resources. In order to do that the creator needs to limit his creation 
+
+
+
+
+
 
 \end{document}

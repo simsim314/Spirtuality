@@ -14,3 +14,7 @@ There exist YES/NO/Didn't converge oracle. Answering all possible questions to a
 How oracle that returns string will look like? 
 
 Philosophical implications: can God be defined as this oracle? 
+
+------ 
+
+How did Cauchy series are capable of generating C? Maybe we can discard cantor sequence for some reason? like he can't follow us this way - and we will use only Cauchy tree and infinity where every infinite is the same? 

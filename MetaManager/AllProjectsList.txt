@@ -1,14 +1,16 @@
-Pyramid Roblox (Society 2.0)
-QCA 
-CA studio 
-Music genarator 
-P30 
-Non eucledian CA 
-cuLife API 
-LifeAPI AVX - lifelib LifeAPI merge. 
-CGOL promotion 
+Pyramid Roblox (Society 2.0) 
+Infinite turing machine. 
+Write paper to prove multudimentional geminoids and other sentences based on CA studio. 
 Grey Goo predecessors/P30/
+CA with UCons/UComp and 4 states. 
+Make 3D globus with screen and real time update. Have history on it zoom in and out = using virtual reality. 
+CA studio 
+CGOL promotion 
 CGOL Education
 Music Generator 
-CA with UCons/UComp and 4 states. 
-Infinite turing machine 
+LifeAPI AVX - lifelib LifeAPI merge. 
+Music genarator 
+Non eucledian CA 
+cuLife API 
+QCA 
+QCA based CA space exploration
