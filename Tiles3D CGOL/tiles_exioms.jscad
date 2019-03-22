@@ -16,7 +16,7 @@ attach_m = 1.1;
 c_factor = 0.7; //the slope of attachment mechanism. 1 = 45, 0 = 0. 
 v = 3; // The size of additional material
 R = 10; //The length of internal core
-d1 = 2.1;
+d1 = 2.4;
 d2 = 3;
 
 h_extrusion = v * depth_factor;
