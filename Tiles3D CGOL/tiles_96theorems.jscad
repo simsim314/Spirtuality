@@ -1,5 +1,3 @@
-//This is universal CA tile set axioms. 
-//Invention and design by Michael Simkin 2019. 
 //Constants
 epsilon_material = 0.03;
 depth_factor = 0.6;
@@ -303,13 +301,13 @@ function AttachTop(vn, idx)
         return union(vn, DrawPlus(epsilon_material).translate([0, 0, R + 2 * v]));
     
     if(idx === 3)
-        return union(vn, Attach(0).translate([0,0,2*v+R]));
+        return union(vn, Attach(0, 1).translate([0,0,2*v+R]));
 }
 
 function AttachBottom(vn, idx)
 {
     if(idx === 0)
-        return difference(vn, Attach(epsilon_material));
+        return difference(vn, Attach(epsilon_material,1));
         
     if(idx == 1)
         return difference(vn, Draw0(epsilon_material));
@@ -319,6 +317,59 @@ function AttachBottom(vn, idx)
         
     if(idx === 3)
         return difference(vn, DrawPlus0(epsilon_material));
+}
+
+function AttachSide96(vn)
+{
+    //return xor(vn,AttachSide(epsilon_material).translate([0,0,R+2*v]));
+    return xor(vn,AttachSide(epsilon_material).rotateY(90).rotateX(-90).translate([R/2+v,0,R/2+v]));
+}
+
+function attach_side6(vn, idx)
+{
+    if(idx === 0)    
+        return vn;
+        
+    if(idx === 1)
+        return AttachSide96(vn);
+        
+    if(idx === 2)    
+    {
+        vn = AttachSide96(vn);
+        vn = vn.rotateZ(90);
+        vn = AttachSide96(vn);
+        return vn; 
+    }
+    
+    if(idx === 3)
+    {
+        vn = AttachSide96(vn);
+        vn = vn.rotateZ(180);
+        vn = AttachSide96(vn);
+        return vn; 
+    }
+    
+    if(idx === 4)
+    {
+        vn = AttachSide96(vn);
+        vn = vn.rotateZ(90);
+        vn = AttachSide96(vn);
+        vn = vn.rotateZ(90);
+        vn = AttachSide96(vn);
+        return vn; 
+    }
+    
+    if(idx === 5)
+    {
+        vn = AttachSide96(vn);
+        vn = vn.rotateZ(90);
+        vn = AttachSide96(vn);
+        vn = vn.rotateZ(90);
+        vn = AttachSide96(vn);
+        vn = vn.rotateZ(90);
+        vn = AttachSide96(vn);
+        return vn; 
+    }
 }
 
 function main() {
@@ -338,10 +389,35 @@ function main() {
     
    //return union(v, AttachEmale());
    //return AttachEfemale();
-   return all_axioms().translate([-5*R, -5*R, 0]);
+   //return all_axioms().translate([-5*R, -5*R, 0]);
    //return attach_side();
-   //var vn = Vanil();
-   //vn = AttachTop(vn, 3);
    
-   //return AttachBottom(vn,3);
+   var completej = Vanil();
+   var complete = Vanil();
+   
+   for(var j=0; j<6; j++) {
+        
+   for(var i=0; i<16; i++) {
+    
+        idx_top = i % 4;
+        idx_bottom = (i - idx_top) / 4;
+       
+       var vn = Vanil(); 
+       vn = AttachTop(vn, idx_top);
+       vn = attach_side6(vn, j);
+       vn = AttachBottom(vn,idx_bottom);
+        
+        if(i === 0)
+          completej = vn.translate([i * 3 * R, j * 3 * R, 0]);
+        else 
+            completej = union(vn.translate([i * 3 * R, j * 3 * R, 0]), completej);
+    }
+    
+    if(j === 0)
+        complete = completej;
+    else 
+        complete = union(completej, complete);
+   }
+   
+   return complete;        
 }
