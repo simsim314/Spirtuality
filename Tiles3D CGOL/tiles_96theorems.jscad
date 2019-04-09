@@ -152,7 +152,7 @@ function DrawLine(ep)
    sw2 = sWcube / 2;
 
    var p = polygon({points:[ [-sw2-ep,0],[sw2+ep,0],[0,sw2+ep]]});
-   var exp = linear_extrude({ height: 2*sR }, p).translate([0,sH+ep,-sR-ep]);
+   var exp = linear_extrude({ height: 2*sR + 2*ep }, p).translate([0,sH+ep,-sR-ep]);
    
    return union(cube([2*sR+2*ep, sWcube + 2 * ep, sH+ep]).translate([-sR-ep, -(sWcube)/2-ep, 0]),
                  exp.rotateX(90).rotateZ(90));
