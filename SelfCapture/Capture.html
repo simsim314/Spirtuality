@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<!--
+	Ideally these elements aren't created until it's confirmed that the 
+	client supports video/camera, but for the sake of illustrating the 
+	elements involved, they are created with markup (not JavaScript)
+-->
+<video id="video" width="0" height="0" autoplay></video>
+<canvas id="canvas" width="1200" height="800"></canvas>
+<script>
+
+active_color = "#0000ff";
+active_color = "#008000";
+		
+function showlifespan(context, in_ratio)
+	{
+		
+		var  ratio = in_ratio;
+		var lineS = 320;
+		var lineL = 700;
+		var y = 50; 
+		eps = 0.001
+		
+		context.lineWidth = 12;
+
+		  context.strokeStyle = "#ff0000";
+		  
+		  context.beginPath();   
+		   context.moveTo(lineS,y);
+		  context.lineTo(lineS + (ratio - eps) * lineL,y);
+		  // Make the line visible
+		  context.stroke();
+		  
+		  context.strokeStyle = active_color;
+		  context.beginPath();   
+		   context.moveTo(lineS + lineL,y);
+		  context.lineTo(lineS + (ratio + eps) * lineL,y);
+		  context.stroke();
+		  
+		  context.strokeStyle = "#ffff00";
+		  context.beginPath();   
+		  context.moveTo(lineS + (ratio - eps) * lineL,y);
+		  context.lineTo(lineS + (ratio + eps) * lineL,y);
+		  context.stroke();
+	}
+
+function node_xy(node, centerx, centery, radius, nodes)
+{
+	 angle = node * 2 * Math.PI / nodes;
+	 return [centerx + radius * Math.cos(angle), centery + radius * Math.sin(angle)];
+}
+
+function status(index, i)
+{
+		if(i < index)
+			 return 0;
+		else if(i == index)
+			return 1;
+		else
+			return 2;
+}
+
+function combine_status(s1, s2)
+{
+	return Math.max(s1, s2);
+}
+
+function status_to_color(status)
+{
+		if(status == 0)
+			 return active_color;
+		else if(status == 1)
+			return "#ffff00";
+		else
+			return "#ff0000";
+			
+
+}
+
+function showgraph(context, index)
+{
+	var cx = 150; 
+	var cy = 150; 
+	var r = 90; 
+	
+	 var nodes = [0,1,2,3,4,5,6];
+	 var edges = [];
+	 var i, j;
+
+	for (i = 0; i < 7; i++) {
+	  for (j = 0; j < i; j++) {
+		edges.push([i, j]);
+	  }
+	 }
+	  
+	  
+	 for (i = 0; i < edges.length; i++) {
+	  context.strokeStyle = active_color;
+	  context.lineWidth = 1;
+	  i1 = edges[i][0];
+	  i2 = edges[i][1];
+	  
+	  xy1 = node_xy(i1, cx, cy, r, 7);
+	  xy2 = node_xy(i2, cx, cy, r, 7);
+	  
+	  s1 = status(index, i1);
+	  s2 = status(index, i2);
+		
+	  context.strokeStyle = status_to_color(combine_status(s1, s2));
+	  context.beginPath();   
+	   context.moveTo(xy1[0],xy1[1]);
+	  context.lineTo(xy2[0],xy2[1]);
+	  // Make the line visible
+	  context.stroke();
+		
+	  }
+	  
+	 for (i = 0; i < nodes.length; i++) {
+	 
+		context.strokeStyle = status_to_color(status(index, i));
+			
+		  
+	  context.lineWidth = 3;
+	  context.beginPath();  
+	  xy = node_xy(i, cx, cy, r, 7);
+	  context.arc(xy[0], xy[1], 2, 0, 2 * Math.PI);
+	  context.stroke();
+	  }
+	  
+	  
+	  
+}
+	
+class VisualizedPerson {
+    constructor(ratio, index) {
+        this.ratio = ratio;
+        this.index = index;
+    }
+	
+	startvideo() {
+		// Grab elements, create settings, etc.
+		var video = document.getElementById('video');
+
+		// Get access to the camera!
+		if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+			// Not adding `{ audio: true }` since we only want video now
+			navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+				//video.src = window.URL.createObjectURL(stream);
+				video.srcObject = stream;
+				video.play();
+			});
+		}
+    }
+
+	show() {
+		// Grab elements, create settings, etc.
+		var video = document.getElementById('video');
+		// Elements for taking the snapshot
+		var canvas = document.getElementById('canvas');
+		var context = canvas.getContext('2d');
+		var idx = this.index;
+		var rat = this.ratio;
+		
+		// Trigger photo take
+		video.addEventListener('play', function() {
+			
+			(function loop() {
+			//    ctx.drawImage(video, 0, 0,640, 480);
+			//    setTimeout(loop, 1000 / 30); // drawing at 30fps
+			//  }
+			
+			context.drawImage(video, 0, 0, 1066, 800);
+			
+			showlifespan(context, rat);
+			showgraph(context, idx);
+
+		  setTimeout(loop, 1000 / 30); // drawing at 30fps
+		   })();
+		   
+		   
+		});
+    }
+	
+}
+
+// 5 sec in hour 
+// 1 min a day 
+// 10 minutes a week 
+// 30 hr in a 7 weeks (2 month)
+// 1 hr in a 49 weeks (year)
+// 2 hr in 5 years
+// 3 hr in 35 years
+
+const me = new VisualizedPerson(0.56, 4);
+me.startvideo();
+me.show();
+
+</script>
+
+</body>
+</html> 
