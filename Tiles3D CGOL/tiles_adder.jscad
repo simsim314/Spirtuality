@@ -64,16 +64,16 @@ function draw_platform()
     
     for(var i=0; i<N; i+=1) {
             v = union(v, Draw0(0).translate([R/2 ,R/2 + i * realR, PlatH]));
-    		v = union(v, Draw0(0).translate([R/2 + 2*ep + realR, R/2 + i * realR, PlatH]));
+          v = union(v, Draw0(0).translate([R/2 + ep + realR, R/2 + i * realR, PlatH]));
         }
         
-    return union(v.translate([0,PlatW,0]), cube([2 * realR, PlatW,H]), cylinder({r: R * r_factor, h:(H)}).translate([R/2 + ep, PlatW, 0]),  cylinder({r: R * r_factor, h:(H)}).translate([R/2 + ep + realR, PlatW, 0]));
+    return union(v.translate([0,PlatW,0]), cube([2 * realR, PlatW,H]), cylinder({r: R * r_factor, h:(H)}).translate([R/2, PlatW, 0]),  cylinder({r: R * r_factor, h:(H)}).translate([R/2 + ep + realR, PlatW, 0]));
 }
 
 function add_inputs(v, i1, i2)
 {
     ep = epsilon_material;
-    realR = R + ep; 
+    realR = R + 2 * ep; 
      
     if(i1 == 0)
         v = difference(v, Draw0(ep).translate([R/2 ,R/2, 0]));
@@ -81,39 +81,45 @@ function add_inputs(v, i1, i2)
         v = difference(v, DrawLine(ep).translate([R/2 ,R/2, 0]));
         
     if(i2 == 0)
-        v = difference(v, Draw0(ep).translate([R/2 + 2*ep ,R/2+realR, 0]));
+        v = difference(v, Draw0(ep).translate([R/2 ,R/2+realR, 0]));
     else
-        v = difference(v, DrawLine(ep).translate([R/2 + 2*ep ,R/2+realR, 0]));
+        v = difference(v, DrawLine(ep).translate([R/2 ,R/2+realR, 0]));
         
     return v; 
 }
 
 function add_output(v, o)
 {
+	ep = epsilon_material;
+    
     if(o == 0)
-        return union(v, Draw0(ep).translate([R/2 ,R, TileH]))    
+        return union(v, Draw0(0).translate([R/2 ,R + ep, TileH]))    
     else
-        return union(v, DrawLine(ep).translate([R/2 ,R, TileH]))    
+        return union(v, DrawLine(0).translate([R/2 ,R + ep, TileH]))    
 }
 
 function add_input_c(v, c)
 {
-	ep = epsilon_material;
-	if(c == 0)
-		return difference(v, union(cylinder({r: R * r_factor + ep, h:(R)}).translate([0, R/2, 0]), cylinder({r: R * r_factor + ep, h:(R)}).translate([0, R/2 + realR + ep, 0])));
-	else 
-		return difference(v, cylinder({r: R * r_factor * 1.5 + ep, h:(R)}).translate([0, R, 0]));
-	
+   ep = epsilon_material;
+    realR = R + 2 * ep; 
+    
+   if(c == 0)
+      return difference(v, union(cylinder({r: R * r_factor + ep, h:(R)}).translate([0, R/2, 0]), cylinder({r: R * r_factor + ep, h:(R)}).translate([0, R/2 + realR, 0])));
+   else 
+      return difference(v, cylinder({r: R * r_factor * 1.5 + ep, h:(R)}).translate([0, R + ep, 0]));
+   
 }
 
 function add_output_c(v, c)
 {
-	ep = epsilon_material;
-	if(c === 0)
-		return union(v, union(cylinder({r: R * r_factor + ep, h:(TileH)}).translate([R, R/2, 0]), cylinder({r: R * r_factor + ep, h:(TileH)}).translate([R, R/2 + realR + ep, 0])));
-	else 
-		return union(v, cylinder({r: R * r_factor * 1.5 + ep, h:(TileH)}).translate([R, R, 0]));
-	
+   ep = epsilon_material;
+   realR = R + 2 * ep; 
+    
+   if(c === 0)
+      return union(v, union(cylinder({r: R * r_factor, h:(TileH)}).translate([R, R/2, 0]), cylinder({r: R * r_factor, h:(TileH)}).translate([R, R/2 + realR, 0])));
+   else 
+      return union(v, cylinder({r: R * r_factor * 1.5, h:(TileH)}).translate([R, R + ep, 0]));
+   
 }
 
 function add_tile(i1, i2, ci, co, o)
@@ -150,4 +156,3 @@ return union(
     draw1_cube().translate([-R3, 0, 0]), draw0_cube().translate([-R3, R3, 0])
     );
 }
-
