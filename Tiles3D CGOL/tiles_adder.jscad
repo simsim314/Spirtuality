@@ -1,4 +1,4 @@
-epsilon_material = 0.03;
+epsilon_material = 0.01;
 depth_factor = 0.6;
 symbolR_factor = 0.5; 
 sumbolH_factor = 0.12;
@@ -54,20 +54,20 @@ function draw1_cube()
 function draw_platform()
 {
     ep = epsilon_material;
-    realR = R + ep; 
+    realR = R + 2 * ep; 
     N = 8;
     PlatH = R * 0.2; 
-    H = PlatH + realR + TileH + 2 * ep;
+    H = PlatH + realR + TileH + ep;
     PlatW = R / 3;
     
-    v =  cube([2 * realR, N * realR, PlatH ]);
+    v =  cube([2 * realR - 2 * ep, N * realR, PlatH ]);
     
     for(var i=0; i<N; i+=1) {
             v = union(v, Draw0(0).translate([R/2 ,R/2 + i * realR, PlatH]));
-          v = union(v, Draw0(0).translate([R/2 + ep + realR, R/2 + i * realR, PlatH]));
+            v = union(v, Draw0(0).translate([R/2 + realR, R/2 + i * realR, PlatH]));
         }
         
-    return union(v.translate([0,PlatW,0]), cube([2 * realR, PlatW,H]), cylinder({r: R * r_factor, h:(H)}).translate([R/2, PlatW, 0]),  cylinder({r: R * r_factor, h:(H)}).translate([R/2 + ep + realR, PlatW, 0]));
+    return union(v.translate([0,PlatW,0]), cube([2 * realR - 2 * ep, PlatW,H]), cylinder({r: R * r_factor, h:(H)}).translate([R/2, PlatW, 0]),  cylinder({r: R * r_factor, h:(H)}).translate([R/2 + realR, PlatW, 0]));
 }
 
 function add_inputs(v, i1, i2)
