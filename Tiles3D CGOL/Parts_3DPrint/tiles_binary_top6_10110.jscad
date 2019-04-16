@@ -69,7 +69,7 @@ function draw_platform()
             v = union(v, Draw0(0).translate([R/2 + realR, R/2 + i * realR, PlatH]));
         }
         
-    return union(v.translate([0,PlatW,0]), cube([2 * realR - 2 * ep, PlatW,H]), cylinder({r: R * r_factor, h:(H)}).translate([R/2, PlatW, 0]),  cylinder({r: R * r_factor, h:(H)}).translate([R/2 + realR, PlatW, 0]));
+    return union(v.translate([0,PlatW,0]), cube([2 * realR - 2 * ep, PlatW,H]), cylinder({r: R * r_factor, h:(H), fn: circle_fn}).translate([R/2, PlatW, 0]),  cylinder({r: R * r_factor, h:(H), fn: circle_fn}).translate([R/2 + realR, PlatW, 0]));
 }
 
 function add_inputs(v, i1, i2)
@@ -106,9 +106,9 @@ function add_input_c(v, c)
     realR = R + 2 * ep; 
     
    if(c == 0)
-      return difference(v, union(cylinder({r: R * r_factor + ep, h:(R)}).translate([0, R/2, 0]), cylinder({r: R * r_factor + ep, h:(R)}).translate([0, R/2 + realR, 0])));
+      return difference(v, union(cylinder({r: R * r_factor + ep, h:(R), fn: circle_fn}).translate([0, R/2, 0]), cylinder({r: R * r_factor + ep, h:(R), fn: circle_fn}).translate([0, R/2 + realR, 0])));
    else 
-      return difference(v, cylinder({r: R * r_factor * 1.5 + ep, h:(R)}).translate([0, R + ep, 0]));
+      return difference(v, cylinder({r: R * r_factor * 1.5 + ep, h:(R), fn: circle_fn}).translate([0, R + ep, 0]));
    
 }
 
@@ -118,9 +118,9 @@ function add_output_c(v, c)
    realR = R + 2 * ep; 
     
    if(c === 0)
-      return union(v, union(cylinder({r: R * r_factor, h:(TileH)}).translate([R, R/2, 0]), cylinder({r: R * r_factor, h:(TileH)}).translate([R, R/2 + realR, 0])));
+      return union(v, union(cylinder({r: R * r_factor, h:(TileH), fn: circle_fn}).translate([R, R/2, 0]), cylinder({r: R * r_factor, h:(TileH), fn: circle_fn}).translate([R, R/2 + realR, 0])));
    else 
-      return union(v, cylinder({r: R * r_factor * 1.5, h:(TileH)}).translate([R, R + ep, 0]));
+      return union(v, cylinder({r: R * r_factor * 1.5, h:(TileH), fn: circle_fn}).translate([R, R + ep, 0]));
    
 }
 
