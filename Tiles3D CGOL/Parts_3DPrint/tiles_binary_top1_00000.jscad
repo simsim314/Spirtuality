@@ -147,14 +147,14 @@ R6 = R * 6;
 //return ;
 return union(
     add_tile(0,0,0,0,0)
-    //add_tile(1,0,0,0,1).translate([R3, 0, 0]),
-    //add_tile(0,1,0,0,1).translate([R6, 0, 0]),
-    //add_tile(0,0,1,0,1).translate([0, R3, 0]),
-    //add_tile(1,1,0,1,0).translate([R3, R3, 0]),
-    //add_tile(1,0,1,1,0).translate([R6, R3, 0]),
-    //add_tile(0,1,1,1,0).translate([R3, R6, 0]),
-    //add_tile(1,1,1,1,1).translate([R6, R6, 0]),
-    //draw_platform().translate([R*8, 0, 0]),
-    //draw1_cube().translate([-R3, 0, 0]), draw0_cube().translate([-R3, R3, 0])
+    //add_tile(1,0,0,0,1)//.translate([R3, 0, 0]),
+    //add_tile(0,1,0,0,1)//.translate([R6, 0, 0]),
+    //add_tile(0,0,1,0,1)//.translate([0, R3, 0]),
+    //add_tile(1,1,0,1,0)//.translate([R3, R3, 0]),
+    //add_tile(1,0,1,1,0)//.translate([R6, R3, 0]),
+    //add_tile(0,1,1,1,0)//.translate([R3, R6, 0]),
+    //add_tile(1,1,1,1,1)//.translate([R6, R6, 0]),
+    //draw_platform()//.translate([R*8, 0, 0]),
+    //draw1_cube()//.translate([-R3, 0, 0]), draw0_cube().translate([-R3, R3, 0])
     );
 }
