@@ -1,10 +1,11 @@
-epsilon_material = 0.01;
+epsilon_material = 0.1;
 depth_factor = 0.6;
 symbolR_factor = 0.5; 
 sumbolH_factor = 0.12;
 symbolW_factor = 0.3;
-r_factor = 0.1;
-    
+r_factor = 0.1; 
+circle_fn = 100; 
+
 R = 10; //The length of cube
 v = 0;
 d1 = 2.75;
@@ -22,8 +23,8 @@ function Draw0(ep)
    l = (sR - sW)/2 + ep; 
    u = (sR + sW)/2; 
    
-   return union(rotate_extrude( polygon({points:[ [u-l,0],[u+l,0],[u,l]]}) ).translate([0,0,sH+ep]),
-    difference(cylinder({r:(sR + ep), h:(sH + ep)}), cylinder({r:(sW - ep), h:(sH + ep)})));
+   return union(rotate_extrude({fn:circle_fn},  polygon({points:[ [u-l,0],[u+l,0],[u,l]]}) ).translate([0,0,sH+ep]),
+    difference(cylinder({r:(sR + ep), h:(sH + ep), fn: circle_fn}), cylinder({r:(sW - ep), h:(sH + ep), fn: circle_fn})));
     
 }
 
@@ -43,12 +44,12 @@ function DrawLine(ep)
 
 function draw0_cube()
 {
-  return difference(union(Draw0(0).translate([R/2,R/2,R]), cube(R), cylinder({r: R * r_factor, h:(R)}).translate([0, R/2, 0])), union(Draw0(epsilon_material).translate([R/2,R/2,0]), cylinder({r: R * r_factor + epsilon_material, h:(R)}).translate([R, R/2, 0])));
+  return difference(union(Draw0(0).translate([R/2,R/2,R]), cube(R), cylinder({r: R * r_factor, h:(R), fn: circle_fn}).translate([0, R/2, 0])), union(Draw0(epsilon_material).translate([R/2,R/2,0]), cylinder({r: R * r_factor + epsilon_material, h:(R), fn: circle_fn}).translate([R, R/2, 0])));
 }
 
 function draw1_cube()
 {
-    return difference(union(DrawLine(0).translate([R/2,R/2,R]), cube(R), cylinder({r: R * r_factor, h:(R)}).translate([0, R/2, 0])), union(Draw0(epsilon_material).translate([R/2,R/2,0]), cylinder({r: R * r_factor + epsilon_material, h:(R)}).translate([R, R/2, 0])));
+    return difference(union(DrawLine(0).translate([R/2,R/2,R]), cube(R), cylinder({r: R * r_factor, h:(R), fn: circle_fn}).translate([0, R/2, 0])), union(Draw0(epsilon_material).translate([R/2,R/2,0]), cylinder({r: R * r_factor + epsilon_material, h:(R), fn: circle_fn}).translate([R, R/2, 0])));
 }
 
 function draw_platform()
@@ -67,7 +68,7 @@ function draw_platform()
             v = union(v, Draw0(0).translate([R/2 + realR, R/2 + i * realR, PlatH]));
         }
         
-    return union(v.translate([0,PlatW,0]), cube([2 * realR - 2 * ep, PlatW,H]), cylinder({r: R * r_factor, h:(H)}).translate([R/2, PlatW, 0]),  cylinder({r: R * r_factor, h:(H)}).translate([R/2 + realR, PlatW, 0]));
+    return union(v.translate([0,PlatW,0]), cube([2 * realR - 2 * ep, PlatW,H]), cylinder({r: R * r_factor, h:(H), fn: circle_fn}).translate([R/2, PlatW, 0]),  cylinder({r: R * r_factor, h:(H), fn: circle_fn}).translate([R/2 + realR, PlatW, 0]));
 }
 
 function add_inputs(v, i1, i2)
@@ -104,9 +105,9 @@ function add_input_c(v, c)
     realR = R + 2 * ep; 
     
    if(c == 0)
-      return difference(v, union(cylinder({r: R * r_factor + ep, h:(R)}).translate([0, R/2, 0]), cylinder({r: R * r_factor + ep, h:(R)}).translate([0, R/2 + realR, 0])));
+      return difference(v, union(cylinder({r: R * r_factor + ep, h:(R), fn: circle_fn}).translate([0, R/2, 0]), cylinder({r: R * r_factor + ep, h:(R), fn: circle_fn}).translate([0, R/2 + realR, 0])));
    else 
-      return difference(v, cylinder({r: R * r_factor * 1.5 + ep, h:(R)}).translate([0, R + ep, 0]));
+      return difference(v, cylinder({r: R * r_factor * 1.5 + ep, h:(R), fn: circle_fn}).translate([0, R + ep, 0]));
    
 }
 
@@ -116,9 +117,9 @@ function add_output_c(v, c)
    realR = R + 2 * ep; 
     
    if(c === 0)
-      return union(v, union(cylinder({r: R * r_factor, h:(TileH)}).translate([R, R/2, 0]), cylinder({r: R * r_factor, h:(TileH)}).translate([R, R/2 + realR, 0])));
+      return union(v, union(cylinder({r: R * r_factor, h:(TileH), fn: circle_fn}).translate([R, R/2, 0]), cylinder({r: R * r_factor, h:(TileH), fn: circle_fn}).translate([R, R/2 + realR, 0])));
    else 
-      return union(v, cylinder({r: R * r_factor * 1.5, h:(TileH)}).translate([R, R + ep, 0]));
+      return union(v, cylinder({r: R * r_factor * 1.5, h:(TileH), fn: circle_fn}).translate([R, R + ep, 0]));
    
 }
 
