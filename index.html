@@ -2,19 +2,81 @@
 <html>
 <head>
 <title>Page Title</title>
-</head>
-<body>
 
-</body>
+</head>
+
+<body>
+<div id="bd" style="position:absolute;visibility:hidden;">
+    <label for="fname">Set birth. Year/Month/Day/Hour/Minute:</label>
+  	<input type="text" id="bd_text" name="bd_text">
+    <button id="bd_save" type="button">Save</button>
+</div>
+  </body>
+  
+<script src="//cdn.jsdelivr.net/npm/pouchdb@7.1.1/dist/pouchdb.min.js"></script>
 
 <script>
-// create canvas element and append it to document body
+
+var db = new PouchDB('self_data');
+
 var canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
+
+//var me = {start: 138000119811342, end: 138000120811342}
+var me = {start: -1, end: -1};
+
+db.get('me').then(function (doc) {
+  me.start = doc.start;
+  me.end = doc.end;
+});
 
 // some hotfixes... ( ≖_≖)
 document.body.style.margin = 0;
 canvas.style.position = 'fixed';
+
+btn = document.createElement("BUTTON");
+btn.style.width = '50px';
+btn.style.height = '20px';
+btn.style.position = "absolute";
+btn.style.left = '0px';
+btn.style.top = '180px';
+btn.innerHTML = "Me";
+document.body.appendChild(btn);
+
+btn.onclick = function() 
+{
+	canvas.style.visibility = "hidden"; 
+	modal = document.getElementById("bd")
+    modal.style.visibility = "visible";
+    modal.style.top = '180px';
+    modal.style.left = '60px';
+}
+
+savebtn = document.getElementById("bd_save");
+savebtn.onclick = function() 
+{
+	text = document.getElementById("bd_text").value;
+    res = text.split("/");
+    
+    birthday = new Date(res[0], res[1] - 1, res[2], res[3], res[4], 0);
+	start = Math.round(calctime(birthday));
+    end = start + 1000000;
+    
+    var doc = {
+      "_id": "me",
+      "name": "Me",
+      "start": start,
+      "end":end
+      };
+      
+      db.put(doc);
+    
+    me.start = doc.start;
+  	me.end = doc.end;
+  
+	canvas.style.visibility = "visible"; 
+	modal.style.visibility = "hidden";
+}
 
 // get canvas 2D context and set him correct size
 var ctx = canvas.getContext('2d');
@@ -51,30 +113,133 @@ ctx.lineTo(x1, y1);
 ctx.stroke();
 }
 
+function time2x(t)
+{
+	idx = 100 * (t - interval.start) / ((interval.end - interval.start));
+	return ctx.canvas.width * 0.1 + ctx.canvas.width * 0.8 * idx / 100; 
+}
+
+function max(a, b)
+{
+	if(a > b)
+    	return a;
+        
+     return b;
+}
+
+function min(a, b)
+{
+	if(a < b)
+    	return a;
+        
+     return b;
+}
+
+function calcSelf() {
+
+	d = interval.start - me.start;
+    
+	step = (interval.end - interval.start) / 100; 
+   
+    if(step > 1)
+    	d -= d % step; 
+     
+    if(step < 1)
+    	step = 1 
+        
+	for (j = 0; j <= 100; j++) {
+    
+    	tm =  me.start + d + j * step;
+        
+        if(tm < interval.start || tm > interval.end || tm < me.start || tm > me.end)
+        	continue; 
+        
+    	t0 = time2x(tm);
+    	
+        if((d + j * step) % (10 * step) == 0 || interval.scale <= -4)
+    	{
+        	line(t0, 140, t0, 160);    
+            ctx.fillStyle = "blue";
+            ctx.font = "bold 11px Arial";
+            ctx.fillText((d + j * step) / 10000, t0 - 5, 172);  	
+            ctx.fillStyle = "black";
+
+        }
+        else 
+        	line(t0, 147, t0, 153);    
+
+    }
+
+}
+
+function drawdata() {
+
+	if(me.end < interval.start)
+    	return; 
+        
+    if(me.start > interval.end)
+    	return;
+        
+    t0 = time2x(max(interval.start, me.start));
+    t1 = time2x(min(interval.end, me.end));
+    
+    ctx.strokeStyle = "#0000ff";
+    line(t0, 150, t1, 150);
+
+	if(interval.start <= me.start && interval.end >= me.start)
+    		line(t0, 140, t0, 160);    
+
+    if(interval.start <= me.end && interval.end >= me.end)
+    	line(t1, 140, t1, 160);     
+    
+    calcSelf();
+    
+    ctx.strokeStyle = "#000000";
+	
+}
+
+
+function datestring(date)
+{
+	year = date.getFullYear();
+    month = date.getMonth() + 1;
+    day = date.getDate();
+	
+    hours = date.getHours();
+    minutes = date.getMinutes();
+    
+	return `${hours}:${minutes}  ${day}/${month}/${year}`; 
+}
+
 function drawruler() {
 
-ctx.font = "25px Arial";
-ctx.fillText("Universe", ctx.canvas.width / 2 - 50, 50);
+ctx.font = "bold 32px Arial";
+ctx.fillText("Universe", ctx.canvas.width / 2 - 70, 30);
+interval.now = calctime(new Date());
+
+ctx.font = "12px Arial";
+time = calcdate(interval.start);
+ctx.fillText(datestring(time), 5, 15);
 
 ctx.lineWidth = 1;
 ctx.lineCap = 'round';
 line(0, 100, ctx.canvas.width, 100)
-dx = ctx.canvas.width * 0.8 / 100; 
+dx = ctx.canvas.width * 0.8 / 10; 
 
 
-dy = 20
-
-line(ctx.canvas.width * 0.1, 160 + dy, ctx.canvas.width * 0.1 + 10 * dx, 160 + dy)
-line(ctx.canvas.width * 0.1, 155 + dy, ctx.canvas.width * 0.1, 165 + dy)
-line(ctx.canvas.width * 0.1 + 10 * dx, 155 + dy, ctx.canvas.width * 0.1 + 10 * dx, 165 + dy)
+dy = -40
+d = 8 -  ctx.canvas.width * 0.1
+line(d + ctx.canvas.width * 0.1, 160 + dy, d + ctx.canvas.width * 0.1 + dx, 160 + dy)
+line(d + ctx.canvas.width * 0.1, 155 + dy, d + ctx.canvas.width * 0.1, 165 + dy)
+line(d + ctx.canvas.width * 0.1 + dx, 155 + dy, d + ctx.canvas.width * 0.1 + dx, 165 + dy)
 
 ctx.font = "25px Arial";
-ctx.fillText("10  y", ctx.canvas.width * 0.1, 195 + dy);  	
+ctx.fillText("10  y", d + ctx.canvas.width * 0.1, 190 + dy);  	
 ctx.font = "12px Arial";
-ctx.fillText(interval.scale, ctx.canvas.width * 0.1 + 25, 180 + dy);  	
+ctx.fillText(interval.scale, d + ctx.canvas.width * 0.1 + 25, 175 + dy);  	
 
 ctx.font = "25px Arial";
-ctx.fillText(interval.start / 10000, ctx.canvas.width * 0.1, 50);  	
+ctx.fillText(interval.start / 10000, ctx.canvas.width * 0.05, 50);  	
 ctx.fillText(interval.end / 10000, ctx.canvas.width * 0.65, 50);  	
 
 
@@ -96,7 +261,7 @@ for (i = 0; i <= 100; i++) {
   if(i % 10 == 0)
   {
   	ctx.font = "25px Arial";
-	ctx.fillText(i, dx - 15, 140);  	
+	ctx.fillText(i, dx - 15, 80);  	
 	line(dx, 80, dx, 120);
   }
   else
@@ -112,13 +277,64 @@ for (i = 0; i <= 100; i++) {
    	line(dx, 95, dx, 105);
   }
   }
-  
-  
 }
 
 function float2int (value) {
     return value | 0;
 }
+
+function calctime(date)
+{
+	initialYear = date.getFullYear();
+    
+    d = 0;
+    year = initialYear;
+    
+    while(year < 1971)
+    {
+    	year += 100
+        d += 100
+    }
+    
+    date.setFullYear(year)
+    
+    const yearlen = 31556952; //year in seconds
+    const base_year = 138000119690000;
+    
+    difference = 10 * date.getTime();
+    
+    date.setFullYear(initialYear);
+    
+    return base_year + (difference / yearlen) - d * 10000;
+}
+
+function calcdate(t)
+{
+	const yearlen = 31556952; //year in seconds
+    const zero_year = 138000110000000;
+    const base_year = 138000119690000;
+    
+    if(t < zero_year)
+    	return new Date();
+    
+    d = 0;
+    y = t; 
+    
+    while(y < base_year)
+    {
+    	y += 1000000;
+        d += 100;
+    }
+    
+    millisec = (y - base_year) * yearlen / 10;
+    
+    time = new Date(millisec);
+    time.setFullYear(time.getFullYear() - d);
+    
+    return time; 
+}
+
+
 function draw(e) {
   // mouse left button must be pressed
   if (e.buttons != 1) return; //zoom in/out
@@ -181,7 +397,7 @@ function draw(e) {
   
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   drawruler();
- 
+ drawdata();
 
 }
 </script>
