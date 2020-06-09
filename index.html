@@ -26,8 +26,8 @@ document.body.appendChild(canvas);
 var me = {start: -1, end: -1};
 
 db.get('me').then(function (doc) {
-  me.start = doc.start;
-  me.end = doc.end;
+  me.start = Math.round(doc.start);
+  me.end = Math.round(doc.end);
 });
 
 // some hotfixes... ( ≖_≖)
@@ -50,6 +50,24 @@ btn.onclick = function()
     modal.style.visibility = "visible";
     modal.style.top = '180px';
     modal.style.left = '60px';
+}
+
+btn = document.createElement("BUTTON");
+btn.style.width = '50px';
+btn.style.height = '20px';
+btn.style.position = "absolute";
+btn.style.left = '0px';
+btn.style.top = '205px';
+btn.innerHTML = "Now";
+document.body.appendChild(btn);
+
+btn.onclick = function() 
+{
+	interval.now = calctime(new Date());
+    interval.start = 10000 * Math.floor(Math.round(interval.now) / 10000);
+    interval.end = interval.start + 10000
+    interval.scale = -1
+	redraw();
 }
 
 savebtn = document.getElementById("bd_save");
@@ -395,10 +413,16 @@ function draw(e) {
     }
   }
   
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+ redraw();
+  
+
+}
+
+function redraw()
+{
+ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   drawruler();
  drawdata();
-
 }
 </script>
 
