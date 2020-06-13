@@ -48,8 +48,6 @@ table, th, td {
     <label for="full_text">Repeat:</label>
     <input type="number" id="num_loop">
     
-    <input type="radio" id="rHour" name="looptype" vvalue="h">
-    <label for="rHour">Hour</label>
     <input type="radio" id="rDay"  name="looptype" value="d">
     <label for="rDay">Day</label>
     <input type="radio" id="rMad"  name="looptype" value="m">
@@ -64,8 +62,9 @@ table, th, td {
 
 <script>
 
-var db = new PouchDB('self_data-t39');
-
+var db = new PouchDB('self_data-t43');
+const yearlen = 31556952; //year in seconds
+    
 var dx_idx = 0 ;
 var coins = 20;
 var _rev = -1;
@@ -85,13 +84,14 @@ if (err) {
 	me = dc;
 	me.start = Math.round(me.start);
 	me.end = Math.round(me.end);
-	console.log(dc);
+	console.log(me);
 	
+
+
 	
 	});
 
 });
-
 
 db.get('idx', function(err, doc) {
 if (err) {
@@ -108,7 +108,7 @@ if (err) {
 	dx_idx = dc.dx_idx;
 	coins = dc.coins;
 	_rev = dc._rev;
-		
+	
 	console.log(dc);
 	loadcontracts();
 
@@ -125,30 +125,6 @@ document.body.appendChild(canvas);
 // some hotfixes... ( ≖_≖)
 document.body.style.margin = 0;
 canvas.style.position = 'fixed';
-
-
-btn = document.createElement("BUTTON");
-btn.style.width = '50px';
-btn.style.height = '20px';
-btn.style.position = "absolute";
-btn.style.left = '0px';
-btn.style.top = '305px';
-btn.innerHTML = "Report";
-document.body.appendChild(btn);
-
-btn.onclick = function() 
-{
-	
-	for(var i = 0; i < dx_idx; i++)
-	{
-		db.get('contract' + i, function(err, dc) {
-			console.log(dc);
-			all_contracts.push(dc);
-		});
-	}
-	
-}
-
 
 btn = document.createElement("BUTTON");
 btn.style.width = '50px';
@@ -226,9 +202,14 @@ btn.onclick = function()
 	modal = document.getElementById("con_list");
     modal.style.visibility = "visible";
     modal.style.top = '5px';
-    modal.style.left = '10px';
+    modal.style.left = '55px';
 }
 
+retbtn = document.getElementById("apply_list");
+retbtn.onclick = function() 
+{
+	checkchange();
+}
 
 retbtn = document.getElementById("cancel_list");
 retbtn.onclick = function() 
@@ -291,7 +272,7 @@ resize();
 
 // last known position
 var pos = { x: 0, y: 0 };
-var interval = {start: 0, end: 1000000000000000, scale: 10, now: 138000120194363}
+var interval = {start: 0, end: 1000000000000000, scale: 10, now: 138000120194363, cursor: -1}
 
 /*
 doc = {
@@ -386,8 +367,6 @@ function add_all_contracts()
 	console.log("dx_idx:" + dx_idx);
 	for(var i = 0; i < dx_idx; i++)
 		add_contract(i, all_contracts[i]);
-	
-	
 }
 
 function add_contract(ci, doc)
@@ -421,10 +400,171 @@ function add_contract(ci, doc)
 	
 	celltitle.innerHTML = "<div style='width: 50px;'>" + doc.title + "</div>";
 	celltext.innerHTML = "<div style='width: 250px;'>"  + doc.text + "</div>";
-	cellcost.innerHTML = doc.lose;
-	cellprize.innerHTML = doc.gain;
+	cellcost.innerHTML = "<input type=\"number\" style='width:40px'; id=\"cost_num_tbl" + ci + "\"  value=\"" + doc.lose + "\">";
+	cellprize.innerHTML = "<input type=\"number\" style='width:40px'; id=\"prize_num_tbl" + ci + "\"  value=\"" + doc.gain + "\">";
 	cellend.innerHTML = doc.end;
-	cellresult.innerHTML = "<input type=\"checkbox\">Finished"
+	
+	//logic for finished and passed tasks
+	
+	//task logic
+	status_flags = ""
+	status = "Progress"
+	
+	if(doc.end < interval.now)
+	{
+		if(doc.result == -1)
+			doc.result = -2;
+		
+		status_flags += " disabled";
+	}
+
+	if(doc.result == 1)
+	{
+		status_flags += " disabled checked";
+		status = "Success";
+	}
+	
+	if(doc.result == 0)
+		status = "Fail";
+	
+	//case statement 
+	if(doc.lose > 0 && doc.gain == 0)
+	{
+		status_flags = "checked disabled";
+		status = Math.round(100 * doc.lose / (doc.title.split(' ').length + doc.text.split(' ').length)) / 100; 
+	}
+	
+	cellresult.innerHTML = "<input type=\"checkbox\" id=\"res_num_tbl" + ci + "\" " +  status_flags + ">" + status;
+}
+
+function save_contract(cost, prize, result, doc, update_coins)
+{
+
+	if(update_coins)
+	{
+		var dci = {
+		  _id: 'idx',
+		  _rev: _rev,
+		  dx_idx: dx_idx,
+		  coins: coins
+		  };
+		
+		db.put(dci)
+		
+		db.get('idx', function(err, dc) {
+			_rev = dc._rev;
+			console.log("rev:" + _rev);
+		});
+	}	
+	
+	doc = {
+	  _id: doc._id,
+	  _rev : doc._rev,
+	  "gain": prize,
+	  "lose":cost, 
+	  "loop":doc.loop, 
+	  "looptype":doc.looptype,
+	  "text":doc.text, 
+	  "title":doc.title, 
+	  "result":result, 
+	  "end":doc.end 
+	  };
+	  
+	  db.put(doc); 
+	  
+	  db.get(doc._id, function(err, dc) {
+	  
+			for(var i = 0; i < dx_idx; i++)
+			{
+				if(all_contracts[i]._id == doc._id)
+				{
+					all_contracts[i] = dc;
+				}
+			}
+	  });
+		
+	
+}
+
+function contract_type(doc)
+{
+	if(doc.loop == "" || doc.loop == "0" || doc.loop == 0)
+	{
+		if(doc.gain > 0)
+			return "task";
+		else 
+			return "statement";
+	}
+	
+	return "routine";
+}
+
+function checkchange()
+{
+	coins = parseInt(coins)
+				
+	for(i = 0; i < dx_idx; i++)
+	{
+		var doc = all_contracts[i];
+		
+		oldcost = doc.lose;
+		oldprize = doc.gain;
+		oldresult = doc.result;
+		
+		cost_val  = parseInt(document.getElementById('cost_num_tbl' + i).value);
+		prize_val  = parseInt(document.getElementById('prize_num_tbl' + i).value);
+		checked = document.getElementById('res_num_tbl' + i).value;
+		
+		var con_type = contract_type(doc);
+		
+		if(con_type == "task")
+		{
+			if(checked && doc.result != 1)
+			{
+				coins += parseInt(prize_val);
+				
+				save_contract(cost_val, prize_val, 1, doc, true);
+			}
+			
+			if(doc.result == -2)
+			{
+				save_contract(doc.lose, doc.gain, 0, doc, false);
+			}
+		}
+		else if (con_type == "statement")
+		{
+			if(oldcost != cost_val)
+			{
+				coins -= Math.abs(oldcost - cost_val);
+				save_contract(cost_val, 0, -1, doc, true);
+			}
+		}
+		
+		//if(oldcost != cost_val || oldprize != prize_val)
+		//	save_contract(cost_val, prize_val, doc);
+	}
+}
+
+function timestep(loop_type, loop, start_time)
+{
+	////Madras in day  = seconds in day divided by seconds in year i.e. day in year by 10000
+	interval.now = calctime(new Date());
+
+	if(looptype == "d")
+		dtime *= (844000000.0) / yearlen;
+	
+	var time = start_time;
+	
+	i0 = Math.floor((interval.now - start_time) / dtime) - 2;
+	
+	for(var i = i0; i < i0 + 10; i++)
+	{
+		t0 = start_time + Math.round(dtime * i * 100) / 100; 
+		t1 = start_time + Math.round(dtime * (i + 1) * 100) / 100; 
+		
+		if(interval.now >= t0 && interval.now < t1)
+			return {i:i, t0:t0, t1:t1}; 
+	}
 }
 
 function newcontractfromUI()
@@ -436,14 +576,12 @@ function newcontractfromUI()
   loop_step = document.getElementById("num_loop").value;
   loop_type = ""
   
-  if (document.getElementById('rHour').checked) 
-  	loop_type = "h";
-  else if (document.getElementById('rDay').checked) 
+   if (document.getElementById('rDay').checked) 
   	loop_type = "d";
    else if (document.getElementById('rMad').checked) 
   	loop_type = "m";
     
-    newcontract(prize, cost, loop_step, loop_type, text, title, -1, interval.start);
+    newcontract(prize, cost, loop_step, loop_type, text, title, -1, interval.cursor);
 }
 
 function loadcontracts()
@@ -490,8 +628,10 @@ function min(a, b)
      return b;
 }
 
-function calcSelf() {
+dyself = 0; 
 
+function calcSelf() {
+	
 	d = interval.start - me.start;
     
 	step = (interval.end - interval.start) / 100; 
@@ -513,18 +653,17 @@ function calcSelf() {
     	
         if((d + j * step) % (10 * step) == 0 || interval.scale <= -4)
     	{
-        	line(t0, 140, t0, 160);    
+        	line(t0, 140 + dyself, t0, 160 + dyself);    
             ctx.fillStyle = "blue";
             ctx.font = "bold 11px Arial";
-            ctx.fillText((d + j * step) / 10000, t0 - 5, 172);  	
+            ctx.fillText((d + j * step) / 10000, t0 - 5, 172 + dyself);  	
             ctx.fillStyle = "black";
 
         }
         else 
-        	line(t0, 147, t0, 153);    
+        	line(t0, 147 + dyself, t0, 153 + dyself);    
 
     }
-
 }
 
 function drawdata() {
@@ -539,13 +678,13 @@ function drawdata() {
     t1 = time2x(min(interval.end, me.end));
     
     ctx.strokeStyle = "#0000ff";
-    line(t0, 150, t1, 150);
+    line(t0, 150 + dyself, t1, 150 + dyself);
 
 	if(interval.start <= me.start && interval.end >= me.start)
-    		line(t0, 140, t0, 160);    
+    		line(t0, 140 + dyself, t0, 160 + dyself);    
 
     if(interval.start <= me.end && interval.end >= me.end)
-    	line(t1, 140, t1, 160);     
+    	line(t1, 140 + dyself, t1, 160 + dyself);     
     
     calcSelf();
     
@@ -563,13 +702,16 @@ function datestring(date)
     hours = date.getHours();
     minutes = date.getMinutes();
     
+	if(isNaN(year))
+		return ""; 
+		
 	return `${hours}:${minutes}  ${day}/${month}/${year}`; 
 }
 
 function drawruler() {
 
 ctx.font = "bold 32px Arial";
-ctx.fillText("Universe", ctx.canvas.width / 2 - 70, 30);
+ctx.fillText("Coins: " + coins, ctx.canvas.width / 2 - 140, 30);
 interval.now = calctime(new Date());
 
 ctx.font = "12px Arial";
@@ -580,6 +722,31 @@ ctx.font = "12px Arial";
 time = calcdate(interval.end);
 ctx.fillText(datestring(time), ctx.canvas.width - 120, 15);
 
+ctx.strokeStyle  = "green";
+ctx.fillStyle  = "green";
+
+t0 = time2x(interval.cursor)
+if(t0 > 0 && t0 < ctx.canvas.width)
+
+line(t0, 50, t0, 180);  
+  
+ctx.font = "12px Arial";
+time = calcdate(interval.cursor);
+
+ctx.fillText(datestring(time), 300, 50);
+ctx.fillText(interval.cursor / 10000, 400, 50);
+var factor = (interval.cursor - interval.start) / (interval.end - interval.start);
+
+v = Math.round(factor * 10000) / 100;
+ctx.fillText(v, t0 - 10, 190);
+		
+ctx.beginPath();
+ctx.fillRect(t0 - 3, 35, 6, 25);
+ctx.stroke();
+
+ctx.strokeStyle  = "black";
+ctx.fillStyle  = "black";  
+			
 ctx.lineWidth = 1;
 ctx.lineCap = 'round';
 line(0, 100, ctx.canvas.width, 100)
@@ -657,8 +824,7 @@ function calctime(date)
     
     date.setFullYear(year)
     
-    const yearlen = 31556952; //year in seconds
-    const base_year = 138000119690000;
+   const base_year = 138000119690000;
     
     difference = 10 * date.getTime();
     
@@ -700,10 +866,16 @@ function draw(e) {
    
    pos.x = e.clientX;
   pos.y = e.clientY;
+  dcanvas = ctx.canvas.width * 0.1;
   
-  if(pos.y >= 20 && pos.y <= 180)
+  if(pos.y < 60)
   {
-  	dcanvas = ctx.canvas.width * 0.1;
+	    var factor = (pos.x - dcanvas) / (ctx.canvas.width * 0.8);
+		interval.cursor = interval.start + factor * (interval.end - interval.start);
+  }
+  else if(pos.y >= 60 && pos.y <= 180)
+  {
+  	
     if(interval.scale == -5)
     	d = (interval.end - interval.start);
     else
@@ -759,7 +931,6 @@ function draw(e) {
   
  redraw();
   
-
 }
 
 function redraw()
