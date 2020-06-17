@@ -62,7 +62,7 @@ table, th, td {
 
 <script>
 
-var db = new PouchDB('self_data-t43');
+var db = new PouchDB('self_data-t45');
 const yearlen = 31556952; //year in seconds
     
 var dx_idx = 0 ;
@@ -219,6 +219,16 @@ retbtn.onclick = function()
     modal.style.visibility = "hidden";
 }
 
+retbtn = document.getElementById("ok_list");
+retbtn.onclick = function() 
+{
+	checkchange();
+	canvas.style.visibility = "visible"; 
+    modal = document.getElementById("con_list");
+    modal.style.visibility = "hidden";
+}
+
+
 canclebtn = document.getElementById("new_cancel");
 canclebtn.onclick = function() 
 {
@@ -336,7 +346,7 @@ function newcontract(gain, lose, loop, looptype, text, title, result, end)
 	console.log("doc put fine");
 	
 	doc = {
-	  _id: "contract" + (dx_idx - 1),
+	  _id: 'contract' + (dx_idx - 1),
 	  "gain": gain,
 	  "lose":lose, 
 	  "loop":loop, 
@@ -352,6 +362,7 @@ function newcontract(gain, lose, loop, looptype, text, title, result, end)
 	  console.log("doc put 2 fine");
 	
 	db.get('contract' + (dx_idx - 1), function(err, dc) {
+			dc = update_con(dc); 
 			console.log(dc);
 			all_contracts.push(dc);
 		});
@@ -364,13 +375,20 @@ function newcontract(gain, lose, loop, looptype, text, title, result, end)
 
 function add_all_contracts()
 {
-	console.log("dx_idx:" + dx_idx);
+	interval.now = calctime(new Date());
+	
+	console.log("add_all_contracts dx_idx:" + dx_idx);
 	for(var i = 0; i < dx_idx; i++)
+	{
+		console.log("a:" + i + ":" + all_contracts[i]);
 		add_contract(i, all_contracts[i]);
+	}
 }
 
 function add_contract(ci, doc)
 {
+	doc = update_con(doc);
+	
 	console.log(ci);
 	console.log(doc);
 	
@@ -406,32 +424,50 @@ function add_contract(ci, doc)
 	
 	//logic for finished and passed tasks
 	
-	//task logic
+	ctype = contract_type(doc)
+	
 	status_flags = ""
-	status = "Progress"
+	status = ""
 	
-	if(doc.end < interval.now)
+	if(ctype == "task")
 	{
-		if(doc.result == -1)
-			doc.result = -2;
-		
-		status_flags += " disabled";
-	}
+		if(doc.end < interval.now)
+		{
+			if(doc.result == -1)
+				doc.result = -2;
+			
+			status_flags += " disabled";
+		}
 
-	if(doc.result == 1)
-	{
-		status_flags += " disabled checked";
-		status = "Success";
+		if(parseInt(doc.result) == 1)
+		{
+			status_flags += " disabled checked";
+			status = "Success";
+		}
+		
+		if(doc.result == 0)
+			status = "Fail";
 	}
-	
-	if(doc.result == 0)
-		status = "Fail";
-	
-	//case statement 
-	if(doc.lose > 0 && doc.gain == 0)
+	else if(ctype == "statement")
 	{
-		status_flags = "checked disabled";
-		status = Math.round(100 * doc.lose / (doc.title.split(' ').length + doc.text.split(' ').length)) / 100; 
+		//case statement 
+		if(doc.lose > 0 && doc.gain == 0)
+		{
+			status_flags = "checked disabled";
+			status = Math.round(100 * doc.lose / (doc.title.split(' ').length + doc.text.split(' ').length)) / 100; 
+		}
+	}		
+	else //(ctype == "routine")
+	{
+		if(doc.dic[doc.now] == -1)
+		{
+			status = "Loop";
+		}
+		else
+		{
+			status_flags += " disabled checked";
+			status = "Loop";
+		}
 	}
 	
 	cellresult.innerHTML = "<input type=\"checkbox\" id=\"res_num_tbl" + ci + "\" " +  status_flags + ">" + status;
@@ -439,7 +475,9 @@ function add_contract(ci, doc)
 
 function save_contract(cost, prize, result, doc, update_coins)
 {
-
+	console.log(doc); 
+	console.log(result); 
+	
 	if(update_coins)
 	{
 		var dci = {
@@ -513,7 +551,7 @@ function checkchange()
 		
 		cost_val  = parseInt(document.getElementById('cost_num_tbl' + i).value);
 		prize_val  = parseInt(document.getElementById('prize_num_tbl' + i).value);
-		checked = document.getElementById('res_num_tbl' + i).value;
+		checked = document.getElementById('res_num_tbl' + i).checked;
 		
 		var con_type = contract_type(doc);
 		
@@ -539,31 +577,77 @@ function checkchange()
 				save_contract(cost_val, 0, -1, doc, true);
 			}
 		}
+		else
+		{
+			if(checked && doc.dic[doc.now] == -1)
+			{
+				doc.dic[doc.now] = 1; 
+				doc.changed = true; 
+				coins += parseInt(prize_val);
+			}
+			
+			if(doc.changed)
+			{
+				console.log("checked 1");
+				save_contract(cost_val, prize_val, dic2str(doc.dic), doc, true);
+			}
+			
+		}
 		
-		//if(oldcost != cost_val || oldprize != prize_val)
-		//	save_contract(cost_val, prize_val, doc);
 	}
+}
+
+function dic2str(dic)
+{
+	res = ""
+	
+	for(var key in dict) {
+		res += key + ":" + dict[key] + ";";
+	}
+
+	return res; 
+}
+
+function str2dic(str)
+{
+	if(str == -1)
+		str = ""; 
+		
+	dict = {}
+	
+	list = str.split(";");
+	
+	for(var i = 0; i < list.length - 1; i++)
+	{
+		var l = list[i].split(":");
+		
+		if(l.length == 2)
+			dict[l[0]] = l[1];
+	}
+	
+	return dict; 
 }
 
 function timestep(loop_type, loop, start_time)
 {
 	////Madras in day  = seconds in day divided by seconds in year i.e. day in year by 10000
 	interval.now = calctime(new Date());
-
-	if(looptype == "d")
+	dtime = loop; 
+	
+	if(loop_type == "d")
 		dtime *= (844000000.0) / yearlen;
 	
 	var time = start_time;
 	
 	i0 = Math.floor((interval.now - start_time) / dtime) - 2;
 	
-	for(var i = i0; i < i0 + 10; i++)
+	for(var j = i0; j < i0 + 10; j++)
 	{
-		t0 = start_time + Math.round(dtime * i * 100) / 100; 
-		t1 = start_time + Math.round(dtime * (i + 1) * 100) / 100; 
+		t0 = start_time + Math.round(dtime * j * 100) / 100; 
+		t1 = start_time + Math.round(dtime * (j + 1) * 100) / 100; 
 		
 		if(interval.now >= t0 && interval.now < t1)
-			return {i:i, t0:t0, t1:t1}; 
+			return j; 
 	}
 }
 
@@ -581,17 +665,57 @@ function newcontractfromUI()
    else if (document.getElementById('rMad').checked) 
   	loop_type = "m";
     
-    newcontract(prize, cost, loop_step, loop_type, text, title, -1, interval.cursor);
+	if(loop_step != "")
+	{
+		if(parseInt(loop_step) > 0)
+			newcontract(prize, cost, loop_step, loop_type, text, title, "", interval.cursor);
+		else 
+			newcontract(prize, cost, loop_step, loop_type, text, title, -1, interval.cursor);
+			
+	}
+	else 
+		newcontract(prize, cost, loop_step, loop_type, text, title, -1, interval.cursor);
+}
+
+function update_con(dc)
+{
+	if(contract_type(dc) == "routine")
+	{	
+		dc.dic = str2dic(dc.result);
+		var k = timestep(dc.loop_type, dc.loop, dc.end);
+		dc.now = k; 
+		
+		dc.cahnged = false; 
+		
+		if(!(k in dc.dic))
+		{
+			dc.dic[k] = -1;
+			dc.cahnged = true; 
+		}
+		
+		for(key in dc.dic)
+		{
+			if(key != k && dc.dic[key] == -1)
+			{
+				dc.dic[key] = 0; 
+				dc.changed = true; 
+			}
+		}
+	}	
+	
+	return dc; 
 }
 
 function loadcontracts()
 {
-  
 	for(var i = 0; i < dx_idx; i++)
 	{
 		db.get('contract' + i, function(err, dc) {
+			dc = update_con(dc); 
+			
 			console.log(dc);
 			all_contracts.push(dc);
+			
 		});
 	}
 }
@@ -600,10 +724,10 @@ function loadcontracts()
 
 function line(x0, y0, x1, y1)
 {
-ctx.beginPath();
-ctx.moveTo(x0, y0);
-ctx.lineTo(x1, y1);
-ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(x0, y0);
+	ctx.lineTo(x1, y1);
+	ctx.stroke();
 }
 
 function time2x(t)
