@@ -1,268 +1,91 @@
 <!-- HTML5 code -->
 <html>
 <head>
-  <title>ASCII Art</title>
+  <title>Hex Clock</title>
 </head>
 <body>
-  <canvas id="canvas" width="1200" height="800"></canvas>
-  <br>
-  <input type="text" id="wordInput" value="hello">
-  <button onclick="drawWord()">Draw Word</button>
+  <canvas id="canvas" width="800" height="600"></canvas>
 </body>
 </html>
 
 <!-- JavaScript code -->
 <script>
-  // ASCII constants
-  const cs = "bsdfklmnprtvzghj";
-  const vs = "iouea";
-  
-  // Convert int to consonant
-  function intToConsonant(i) {
-    return cs[i];
-  }
-  
-  // Convert int to vowel
-  function intToVowel(i) {
-    if (i <= 4) {
-      return vs[i];
-    }
-    if (i <= 9) {
-      if (vs[i - 5] == "i") {
-        return "iu";
-      }
-      return vs[i - 5] + "i";
-    }
-    if (i <= 14) {
-      if (vs[i - 10] == "i") {
-        return "au";
-      }
-      return "y" + vs[i - 10];
-    }
-    return "ou";
-  }
-  
-  // Parse word into ASCII pairs
-  function parseWord(word) {
-    let res = [];
-    for (let i = 0; i < word.length; i += 2) {
-      let w1 = word[i];
-      let p1 = cs.indexOf(word[i]);
-      let w2 = word[i + 1];
-      if (i + 1 < word.length) {
-        if (cs.indexOf(word[i + 1]) == -1) {
-          w2 += word[i + 1];
-          i++;
-        }
-      }
-      i++;
-      let p2 = vs.indexOf(w2);
-      res.push([16 * p1 + p2, w1 + w2]);
-    }
-    return res;
-  }
-  
-  // Draw word on canvas
-  function drawWord() {
-    let canvas = document.getElementById("canvas");
-    let ctx = canvas.getContext("2d");
-    let word = document.getElementById("wordInput").value;
-    let x = 10, y = 50;
-    let asciis = parseWord(word);
-    let x0 = x;
-    let y0 = y;
-    for (let [ascii, w] of asciis) {
-      drawASCII(ctx, ascii.toString(2), x0, y0, 6, 15, 2);
-      ctx.font = "10px Arial";
-      ctx.fillText(w, x0 - 10, y0 + 50);
-      x0 += 50;
-    }
-  }
-  
-// Convert ASCII to pair
-function asciiToPair(ascii) {
-  return intToConsonant(Math.floor(ascii / 16)) + intToVowel(ascii % 16);
-}
 
-// Normalize binary string
-function normalizeBinary(binstr) {
-  binstr = binstr.replace("0b", "");
-  while (binstr.length < 8) {
-    binstr = "0" + binstr;
-  }
-  return binstr;
-}
+setInterval(clock, 50);
 
-// Get min and max x values for ASCII
-function minmaxASCII(binstr, xl = 10) {
-  binstr = normalizeBinary(binstr);
-  const xe = [-1, -1, 1, 1, -1, -1, 1, 1];
-  let xs = [0];
-  for (let i = 0; i < 8; i++) {
-    if (binstr[i] == "1") {
-      xs.push(xe[i] * xl);
-    }
-  }
-  return [Math.min(...xs), Math.max(...xs)];
-}
-
-    // Draw ASCII character on canvas
-function drawASCII(canvas, binstr, x, y, xl = 10, yl = 20, w = 2, c = "rgb(255, 255, 255)") {
-  binstr = normalizeBinary(binstr);
-  const hor = [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0];
-  if (hor[parseInt(binstr.substring(0, 4), 2)] == 1) {
-    canvas.beginPath();
-    canvas.moveTo(x, y + yl);
-    canvas.lineTo(x, y);
-    canvas.strokeStyle = c;
-    canvas.lineWidth = w;
-    canvas.stroke();
-    canvas.closePath();
-  }
-  if (hor[parseInt(binstr.substring(4, 8), 2)] == 1) {
-    canvas.beginPath();
-    canvas.moveTo(x, y);
-    canvas.lineTo(x + xl * 8, y);
-    canvas.strokeStyle = c;
-    canvas.lineWidth = w;
-    canvas.stroke();
-    canvas.closePath();
-  }
-  const ver = [1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1];
-  if (ver[parseInt(binstr.substring(0, 4), 2)] == 1) {
-    canvas.beginPath();
-    canvas.moveTo(x, y);
-    canvas.lineTo(x, y - yl);
-    canvas.strokeStyle = c;
-    canvas.lineWidth = w;
-    canvas.stroke();
-    canvas.closePath();
-  }
-  if (ver[parseInt(binstr.substring(4, 8), 2)] == 1) {
-    canvas.beginPath();
-    canvas.moveTo(x + xl * 8, y);
-    canvas.lineTo(x + xl * 8, y - yl);
-    canvas.strokeStyle = c;
-    canvas.lineWidth = w;
-    canvas.stroke();
-    canvas.closePath();
-  }
-}
-    
- function drawSentence(asciis, x, y) {
-  let x0 = x;
-  let y0 = y;
-  for (let ascii of asciis) {
-    drawASCII(ascii.toString(2), x0, y0, 6, 15, 2);
-    ctx.font = "36px Arial";
-    ctx.fillStyle = "rgb(0, 255, 255)";
-    ctx.fillText(asciiToPair(ascii), x0 - 10, y0 + 50);
-    x0 += 50;
-  }
-}
-
-// Convert hex string to ASCII array
-function hexStringToASCIIArray(hexstr) {
-  let res = [];
-  for (let i = 0; i < hexstr.length; i += 2) {
-    res.push(parseInt(hexstr.substring(i, i + 2), 16));
-  }
-  return res;
-}
-    
- 
-// Initialize canvas
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-canvas.width = 1200;
-canvas.height = 800;
-
-// Draw arrow on canvas
-function drawArrow(durationUnits, factor, color, r, w) {
-  let sec = durationUnits - factor * Math.floor(durationUnits / factor);
+function draw_arrow(duration_units, factor, color, r, w, canvas) {
+  // sec is the remaining part of the duration_units after dividing by the factor
+  let sec = duration_units - factor * Math.floor(duration_units / factor);
+  // angle is the angle of the arrow relative to the vertical axis (y-axis)
   let angle = -Math.PI / 2 + sec / factor * 2 * Math.PI;
-  let x = 700,
-    y = 300;
-  let x1 = Math.round(700 + r * 210 * Math.cos(angle)),
-    y1 = Math.round(300 + r * 200 * Math.sin(angle));
+  const canvas1 = document.getElementById("canvas");
+  const ctx = canvas1.getContext("2d");
+	
+  let x = 450;
+  let y = 300;
+  let x1 = Math.round(450 + r * 210 * Math.cos(angle));
+  let y1 = Math.round(300 + r * 200 * Math.sin(angle));
+  ctx.fillStyle = color
+  
   ctx.beginPath();
   ctx.moveTo(x, y);
   ctx.lineTo(x1, y1);
-  ctx.strokeStyle = color;
   ctx.lineWidth = w;
+  ctx.strokeStyle = color;
   ctx.stroke();
-  ctx.closePath();
 }
 
-// Get year, month, day, and hour
 function ymdh(time) {
-  let year = parseInt(time.toString().substring(11, 15));
-  let month = parseInt(time.toString().substring(4, 7));
-  let day = parseInt(time.toString().substring(8, 10));
-  let hour = parseInt(time.toString().substring(16, 18));
+  const year = time.getFullYear();
+  const month = time.getMonth() + 1; // getMonth returns 0-based month
+  const day = time.getDate();
+  const hour = time.getHours();
   return [year, month, day, hour];
 }
 
-let prevDigit = -1;
+function clock() {
+    let date = new Date();
+	
+	if (date.getHours() < 13) {
+	  date = new Date(date.getTime() - 24 * 60 * 60 * 1000);
+	} 
+	
+    const then = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 13, 0, 0);
+	const now = new Date();
+	
+    const duration = now - then;
+    const duration_in_s = duration / 1000;
+    const unit = 1440 * 60 / (256 * 256);
+    let duration_units = Math.floor(duration_in_s / unit);
+	
+	const canvas = document.getElementById("canvas");
+	const ctx = canvas.getContext("2d");
+	ctx.fillStyle = "black";
+	ctx.font = "50px serif";
+	ctx.fillRect(0, 0, 800, 600);
+    ctx.fillStyle = "white";
+	
 
-// Main loop
-while (true) {
-  // Get current date and time
-  let now = new Date();
-  let year, month, day, hour;
-  if (now.getHours() < 13) {
-    now.setDate(now.getDate() - 1);
-    [year, month, day, hour] = ymdh(now);
-  } else {
-    [year, month, day, hour] = ymdh(now);
-  }
-  let then = new Date(year, month - 1, day, 13, 0, 0);
-  let duration = now - then;
-  let durationInS = duration / 1000;
-  let unit = 1440 * 60 / (256 * 256);
-  let durationUnits = Math.floor(durationInS / unit);
-  let asciis = hexStringToASCIIArray(durationUnits.toString(16));
+    const tm = duration_units.toString(16);
+    const tm_formatted = tm.slice(0, 2) + ":" + tm.slice(2, 4);
 
-  // Clear canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillText(tm_formatted, 20, 230);
+	duration_units = duration_in_s / unit;
+	
+    for (let i = 0; i < 16; i++) {
+      const angle = (-Math.PI / 2) + (i / 16) * 2 * Math.PI;
+      const r = 1.2;
+      const x = 450 + r * 210 * Math.cos(angle);
+      const y = 300 + r * 200 * Math.sin(angle);
+      ctx.fillText(i.toString(16), x, y);
+    }
 
-  // Draw sentence on canvas
-  drawSentence(asciis, 50, 230);
+    const colors = ["green", "red", "blue", "white"];
+	
+    for (let i = 0; i < 4; i++) {
+      draw_arrow(duration_units, 16 ** (i + 1), colors[i], 1 - 0.15 * i, 2 ** i);
+    }
 
-  // Draw hexadecimal time on canvas
-  let tm = durationUnits.toString(16);
-  tm = tm.slice(0, 2) + ":" + tm.slice(2, 4);
-  ctx.font = "48px Arial";
-  ctx.fillStyle = "rgb(0, 255, 255)";
-  ctx.fillText(tm, 200, 230);
-
-  // Draw ASCII characters on canvas
-  for (let i = 0; i < 16; i++) {
-    let angle = -Math.PI / 2 + (i / 16) * 2 * Math.PI;
-    let r = 1.2;
-    let x = Math.round(700 + r * 210 * Math.cos(angle)),
-      y = Math.round(300 + r * 200 * Math.sin(angle));
-    let asciis = hexStringToASCIIArray(i.toString(16));
-    ctx.font = "48px Arial";
-    ctx.fillStyle = "rgb(0, 255, 255)";
-    ctx.fillText(i.toString(16), x, y);
-  }
-
-  // Draw arrows on canvas
-  let colors = ["rgb(0, 255, 0)", "rgb(0, 0, 255)", "rgb(255, 0, 0)", "rgb(255, 255, 255)"];
-  for (let i = 0; i < 4; i++) {
-    drawArrow(durationUnits, 16 ** (i + 1), colors[i], 1 - 0.15 * i, 2 ** i);
-  }
-
-  // Check digit
-  let digit = (durationUnits - (256 * 16) * Math.floor(durationUnits / (256 * 16))) % 16;
-  if (prevDigit != digit) {
-    let frequency = 440;
-    let duration = 200;
-  }
-
-  // Update previous digit
-  prevDigit = digit;
 }
 
 </script>
