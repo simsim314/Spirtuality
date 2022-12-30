@@ -46,11 +46,14 @@ function ymdh(time) {
 function clock() {
     let date = new Date();
 	
-	if (date.getHours() < 13) {
+	const timezoneOffset = date.getTimezoneOffset();
+	dt = 5 - timezoneOffset / 60
+
+	if (date.getHours() < 6 + dt) {
 	  date = new Date(date.getTime() - 24 * 60 * 60 * 1000);
 	} 
 	
-    const then = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 13, 0, 0);
+    const then = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6 + dt, 0, 0);
 	const now = new Date();
 	
     const duration = now - then;
