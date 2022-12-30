@@ -78,7 +78,7 @@ function clock() {
     for (let i = 0; i < 16; i++) {
       const angle = (-Math.PI / 2) + (i / 16) * 2 * Math.PI;
       const r = 1.2;
-      const x = 450 + r * 210 * Math.cos(angle);
+      const x = 425 + r * 210 * Math.cos(angle);
       const y = 300 + r * 200 * Math.sin(angle);
       ctx.fillText(i.toString(16), x, y);
     }
