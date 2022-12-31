@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    
+  </head>
+  <body onload="drawTexts()">
+    <!-- Your JavaScript code goes here -->
+  </body>
+</html>
+
+<head>
+  <title>Ascii Art</title>
+	<style>
+      body {
+        background-color: black;
+      }
+    </style>
+</head>
+ <body onload="drawTexts()">
+    <canvas id="canvas" width="1200" height="800"></canvas>
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    function intToConst(i) {
+      const consta = "bsdfklmnprtvzghj";
+      return consta[i];
+    }
+
+    function intToVaul(i) {
+      const constv = "iouea";
+      if (i <= 4) {
+        return constv[i];
+      }
+
+      if (i <= 9) {
+        if (constv[i - 5] === "i") {
+          return "iu";
+        }
+        return constv[i - 5] + "i";
+      }
+
+      if (i <= 14) {
+        if (constv[i - 10] === "i") {
+          return "au";
+        }
+        return "y" + constv[i - 10];
+      }
+
+      return "ou";
+    }
+
+    function parseWord(word) {
+      const cs = [...Array(16).keys()].map((i) => intToConst(i));
+      const vs = [...Array(16).keys()].map((i) => intToVaul(i));
+
+      let i = 0;
+      const res = [];
+
+      while (i < word.length) {
+        const w1 = word[i];
+        const p1 = cs.indexOf(word[i]);
+        let w2 = word[i + 1];
+        i += 1;
+
+        if (i + 1 < word.length) {
+          if (!cs.includes(word[i + 1])) {
+            w2 += word[i + 1];
+            i += 1;
+          }
+        }
+        i += 1;
+
+        const p2 = vs.indexOf(w2);
+        res.push([16 * p1 + p2, w1 + w2]);
+      }
+
+      return res;
+    }
+
+    function drawWord(word, x, y) {
+      const asciis = parseWord(word);
+      let x0 = x;
+      let y0 = y;
+
+      for (const [ascii, w] of asciis) {
+        drawAscii(ascii.toString(2), x0, y0, 6, 15, 2);
+        ctx.font = "12px sans-serif";
+		ctx.fillStyle = "yellow";
+	
+        ctx.fillText(w, x0 - 10, y0 + 50);
+        x0 += 50;
+      }
+
+      return asciis;
+    }
+
+    function asciiToPair(ascii) {
+      return intToConst(Math.floor(ascii / 16)) + intToVaul(ascii % 16);
+    }
+
+    function normalizeBin(binstr) {
+      binstr = binstr.replace("0b", "");
+
+      while (binstr.length < 8) {
+        binstr = "0" + binstr;
+      }
+
+      return binstr;
+    }
+
+    function minmaxAscii(binstr, xl = 10) {
+      binstr = normalizeBin(binstr);
+	  console.log(binstr)
+      const xe = [-1, -1, 1, 1, -1, -1, 1, 1];
+
+      const xs = [0];
+      for (let i = 0; i < 8; i++) {
+        if (binstr[i] === "1") {
+          xs.push(xe[i] * xl);
+        }
+      }
+
+      return [Math.min(...xs), Math.max(...xs)];
+    }
+
+    function drawAscii(binstr, x, y, xl = 10, yl = 20, w = 2, c = "white") {
+      binstr = normalizeBin(binstr);
+	  
+	  const hor = [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0];
+
+	  if (hor[parseInt(binstr.slice(0, 4), 2)] === 1) {
+		ctx.beginPath();
+		ctx.moveTo(x, y + yl);
+		ctx.lineTo(x, y);
+		ctx.strokeStyle = c;
+		ctx.lineWidth = w;
+		ctx.stroke();
+	  }
+
+	  if (hor[parseInt(binstr.slice(4, 8), 2)] === 1) {
+		ctx.beginPath();
+		ctx.moveTo(x, y + yl);
+		ctx.lineTo(x, y + 2 * yl);
+		ctx.strokeStyle = c;
+		ctx.lineWidth = w;
+		ctx.stroke();
+	  }
+
+	  const xe = [-1, -1, 1, 1, -1, -1, 1, 1];
+	  const ys = [0, -1, -1, 0, 0, 1, 1, 0];
+	  const ye = [-1, -1, -1, -1, 1, 1, 1, 1];
+
+	  for (let i = 0; i < 8; i++) {
+		if (binstr[i] === "1") {
+		  ctx.beginPath();
+		  ctx.moveTo(x, y + yl + ys[i] * yl);
+		  ctx.lineTo(x + xe[i] * xl, y + yl + ye[i] * yl);
+		  ctx.strokeStyle = c;
+		  ctx.lineWidth = w;
+		  ctx.stroke();
+		}
+	  }
+	}
+	
+	function hexStringToAsciiar(hexStr) {
+	  hexStr = hexStr.replace("0x", "");
+
+	  if (hexStr.length % 2 === 1) {
+		hexStr = "0" + hexStr;
+	  }
+
+	  const res = [];
+	  for (let i = 0; i < hexStr.length; i += 2) {
+		res.push(parseInt("0x" + hexStr.slice(i, i + 2), 16));
+	  }
+
+	  return res;
+	}
+
+	function asciiarToWord(asciis) {
+	  let res = "";
+
+	  for (const a of asciis) {
+		res += asciiToPair(a);
+	  }
+
+	  return res;
+	}
+
+	function draw(asciis, x, y, xl, yl) {
+	  let x0 = x;
+	  let y0 = y;
+
+	  for (const a of asciis) {
+		console.log("a", a);
+		console.log("min max", minmaxAscii(a.toString(2), xl));
+		
+		let [st, en] = minmaxAscii(a.toString(2), xl);
+		console.log(st, en)
+		x0 -= st;
+		drawAscii(a.toString(2), x0, y0, xl, yl);
+		x0 += en + 8;
+	  }
+
+	  return x0;
+	}
+
+	function val(asc) {
+	  let res = 0;
+
+	  for (const a of asc) {
+		res = 256 * res + a;
+	  }
+
+	  return res;
+	}
+
+	function drawSentence(sentence, x, y, xl = 10, yl = 20) {
+	  const words = sentence.split(" ");
+	  let x0 = x;
+	  let x1 = x;
+
+	  const s = [];
+	  for (const word of words) {
+		const asc = drawWord(word, x1, y);
+		const asc2 = asc.map((p) => p[0]);
+		s.push([val(asc2), val(asc2).toString(16)]);
+		x0 = draw(asc2, x0, y + 80, xl, yl) + 2 * xl + 10;
+		x1 += asc2.length * 50 + 2 * xl + 10;
+	  }
+
+	  console.log(s);
+	}
+	
+	function drawTexts() {
+	  // 13.8 B years in sec 
+	  let asciis = hexStringToAsciiar(0X3C6FE33484265140.toString(16));
+
+	  // 43549491793854672
+
+	  // 2022 years in sec
+	  asciis = hexStringToAsciiar(0xEDB573340.toString(16));
+
+	  // 100 years in sec
+
+	  // 0x9ab808348580d0 rauveibeifapiupigi
+	  const num = 12022;
+	  asciis = hexStringToAsciiar(num.toString(16));
+
+	  console.log(asciiarToWord(asciis));
+
+	  drawSentence("boibyodeinounyojoumuri leilatyojuri neimoloibi", 50, 50);
+	  drawSentence("befoipyoneijoi", 50, 230);
+	  drawSentence("dyajoi", 50, 410);
+
+	  asciis = hexStringToAsciiar(
+		Math.floor(13800012022 * 365.25 * 256).toString(16)
+	  );
+	  
+	  console.log("asciis", asciis);
+	  drawSentence(asciiarToWord(asciis), 250, 410);
+
+	  // 1,290,356,324,105,088
+
+	  // drawSentence(canvas, "vyusaisepi byagyoluifeki fyumouhefapadoiloki", 50, 200)
+	  // drawSentence(canvas, "disi si ba tesiti fori niu laniguje", 50, 200)
+	  // drawSentence(canvas, "disi si ba tesiti fori niu laniguje", 30, 20)
+	  // draw_sentence(canvas, "suiryovaziperyajuivyebi fotomikirogirafi ni hisitopatoloji", 30, 20)
+
+	  // draw_sentence(canvas, "ti hasi ba sitirakituri dati beveri voridi si ba namiberi", 30, 200
+	}
+
+  </script>
+  </body>
+</html>
