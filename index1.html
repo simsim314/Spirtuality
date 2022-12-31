@@ -77,11 +77,11 @@ function drawWord(word, x, y) {
   let y0 = y;
 
   for (const [ascii, w] of asciis) {
-	drawAscii(ascii.toString(2), x0, y0, 6, 15, 2);
-	ctx.font = "12px sans-serif";
+	drawAscii(ascii.toString(2), x0, y0, 9, 22, 3);
+	ctx.font = "18px sans-serif";
 	ctx.fillStyle = "yellow";
-	ctx.fillText(w, x0 - 10, y0 + 50);
-	x0 += 50;
+	ctx.fillText(w, x0 - 10, y0 + 65);
+	x0 += 30;
   }
 
   return asciis;
@@ -274,7 +274,7 @@ function clock() {
     ctx.fillStyle = "white";
 	
 	asciis = hexStringToAsciiar(duration_units.toString(16))
-	drawSentence(asciiarToWord(asciis), 20, 350)
+	drawSentence(asciiarToWord(asciis), 50, 350, 15, 30)
 	ctx.font = "50px serif";
 	ctx.fillStyle = "white";
 	
