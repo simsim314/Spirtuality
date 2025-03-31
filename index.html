@@ -356,25 +356,155 @@
     timelineManager.addElement(new DinosaurElement(DINO_START_ABB, DINO_END_ABB));
     timelineManager.addElement(new HumanElement(HUMAN_SAPIENS_START_ABB));
 
-
     // --- Drawing Function ---
+        // --- Drawing Function ---
     function drawRuler() {
-        const canvasWidth = ctx.canvas.width; const canvasHeight = ctx.canvas.height; const rulerY = canvasHeight * 0.5; const rulerMargin = canvasWidth * 0.1; const rulerWidth = canvasWidth * 0.8; const rulerEnd = rulerMargin + rulerWidth;
-        timelineManager.rulerY = rulerY; ctx.clearRect(0, 0, canvasWidth, canvasHeight); ctx.lineWidth = 2; ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(rulerMargin, rulerY); ctx.lineTo(rulerEnd, rulerY); ctx.stroke();
-        const spanBI = interval.end - interval.start; let currentMajorSpacingBi = 0n; let currentMinorSpacingBi = 0n; if (spanBI > 0n) { const spacing = calculateNiceTickSpacingBi(spanBI); currentMajorSpacingBi = spacing.major; currentMinorSpacingBi = spacing.minor; } else { currentMajorSpacingBi = 1n * SCALING_FACTOR; currentMinorSpacingBi = currentMajorSpacingBi / 10n || 1n; }
-        if (currentMinorSpacingBi > 0n && currentMajorSpacingBi > 0n) { let remainder = interval.start % currentMinorSpacingBi; if (remainder < 0n) { remainder += currentMinorSpacingBi; } let firstTickTimeBi = interval.start - remainder + (remainder === 0n ? 0n : currentMinorSpacingBi); if (firstTickTimeBi < interval.start) { firstTickTimeBi += currentMinorSpacingBi; } ctx.lineWidth = 1; ctx.strokeStyle = '#666'; ctx.fillStyle = '#333'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; for (let tBi = firstTickTimeBi; tBi <= interval.end + currentMinorSpacingBi; tBi += currentMinorSpacingBi) { if (tBi < interval.start - currentMinorSpacingBi) continue; const x = timeBiToX(tBi); if (x < rulerMargin - 10 || x > rulerEnd + 10) continue; let isMajorTick = false; try { if (currentMajorSpacingBi > 0n) { isMajorTick = (tBi % currentMajorSpacingBi === 0n); } } catch (e) { console.warn("Modulo error calculating major tick", e); } ctx.beginPath(); ctx.moveTo(x, rulerY - (isMajorTick ? 8 : 4)); ctx.lineTo(x, rulerY + (isMajorTick ? 8 : 4)); ctx.stroke(); if (isMajorTick) { if (x >= rulerMargin - 0.1 && x <= rulerEnd + 0.1) { const label = formatTimeBiLabel(tBi); ctx.fillText(label, x, rulerY + 20); } } } } else { console.warn("Final tick spacing invalid or zero span. Span:", spanBI); }
-        timelineManager.drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd);
-        interval.now = dateToCustomBi(new Date()); const nowTbiClampedForDraw = interval.now < interval.start ? interval.start : (interval.now > interval.end ? interval.end : interval.now); if (interval.now >= interval.start && interval.now <= interval.end) { const nowX = timeBiToX(interval.now); if (isFinite(nowX)) { ctx.lineWidth = 1.5; ctx.strokeStyle = '#ff0000'; ctx.beginPath(); ctx.moveTo(nowX, rulerY - 15); ctx.lineTo(nowX, rulerY + 15); ctx.stroke(); ctx.fillStyle = '#ff0000'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Now', nowX, rulerY - 18); } }
-        if (interval.cursor >= CUSTOM_TIME_MIN_BI && interval.cursor >= interval.start && interval.cursor <= interval.end) { const cursorX = timeBiToX(interval.cursor); if (isFinite(cursorX)) { ctx.lineWidth = 1.5; ctx.strokeStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX, rulerY - 12); ctx.lineTo(cursorX, rulerY + 12); ctx.stroke(); ctx.fillStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX - 4, rulerY - 12); ctx.lineTo(cursorX + 4, rulerY - 12); ctx.lineTo(cursorX, rulerY - 18); ctx.closePath(); ctx.fill(); } }
+        const canvasWidth = ctx.canvas.width;
+        const canvasHeight = ctx.canvas.height;
 
-        // --- Update Info Display (uses fixed getDateTimeStringFromTbi) ---
+        // --- ▼▼▼ REVISED RULER Y CALCULATION ▼▼▼ ---
+
+        // 1. Define a minimum Y position based on info box CSS top + fixed offset
+        const INFO_BOX_CSS_TOP = 60; // From the .info CSS rule
+        const GUARANTEED_SPACE_BELOW_INFO = 80; // Generous space for info box height + padding
+        const minRulerY = INFO_BOX_CSS_TOP + GUARANTEED_SPACE_BELOW_INFO; // Absolute minimum Y coordinate
+
+        // 2. Calculate the ideal centered position
+        const centeredRulerY = canvasHeight * 0.5;
+
+        // 3. Define the maximum Y position allowed (to avoid collision with bottom)
+        const BOTTOM_MARGIN = 50; // Min space needed below ruler
+        const maxRulerY = canvasHeight - BOTTOM_MARGIN;
+
+        // 4. Determine the target Y:
+        //    Start with the centered position.
+        //    But ensure it's AT LEAST minRulerY (use Math.max).
+        let targetRulerY = Math.max(centeredRulerY, minRulerY);
+
+        // 5. Clamp the target Y:
+        //    Ensure the result from step 4 doesn't exceed maxRulerY (use Math.min).
+        const finalRulerY = Math.min(targetRulerY, maxRulerY);
+
+        // --- ▲▲▲ REVISED RULER Y CALCULATION END ▲▲▲ ---
+
+        // Ensure TimelineManager knows the final ruler Y position
+        timelineManager.rulerY = finalRulerY;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // --- Draw Main Ruler Line ---
+        const rulerMargin = canvasWidth * 0.1;
+        const rulerWidth = canvasWidth * 0.8;
+        const rulerEnd = rulerMargin + rulerWidth;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#333';
+        ctx.beginPath();
+        ctx.moveTo(rulerMargin, finalRulerY); // Use final calculated Y
+        ctx.lineTo(rulerEnd, finalRulerY);     // Use final calculated Y
+        ctx.stroke();
+
+        // --- Draw Ticks and Labels ---
+        // (Drawing logic remains the same, just uses finalRulerY)
+        const spanBI = interval.end - interval.start;
+        let currentMajorSpacingBi = 0n;
+        let currentMinorSpacingBi = 0n;
+
+        if (spanBI > 0n) {
+            // Use the sparser tick function if applied previously
+            const spacing = calculateNiceTickSpacingBi(spanBI);
+            currentMajorSpacingBi = spacing.major;
+            currentMinorSpacingBi = spacing.minor;
+        } else {
+            currentMajorSpacingBi = 1n * SCALING_FACTOR;
+            currentMinorSpacingBi = currentMajorSpacingBi / 10n || 1n;
+        }
+
+        if (currentMinorSpacingBi > 0n && currentMajorSpacingBi > 0n) {
+            let remainder = interval.start % currentMinorSpacingBi;
+            if (remainder < 0n) { remainder += currentMinorSpacingBi; }
+            let firstTickTimeBi = interval.start - remainder + (remainder === 0n ? 0n : currentMinorSpacingBi);
+            if (firstTickTimeBi < interval.start) { firstTickTimeBi += currentMinorSpacingBi; }
+
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#666';
+            ctx.fillStyle = '#333';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+
+            for (let tBi = firstTickTimeBi; tBi <= interval.end + currentMinorSpacingBi; tBi += currentMinorSpacingBi) {
+                if (tBi < interval.start - currentMinorSpacingBi) continue;
+                const x = timeBiToX(tBi);
+                if (x < rulerMargin - 10 || x > rulerEnd + 10) continue;
+
+                let isMajorTick = false;
+                try { if (currentMajorSpacingBi > 0n) { isMajorTick = (tBi % currentMajorSpacingBi === 0n); } }
+                catch (e) { console.warn("Modulo error calculating major tick", e); }
+
+                ctx.beginPath();
+                ctx.moveTo(x, finalRulerY - (isMajorTick ? 8 : 4)); // Use finalRulerY
+                ctx.lineTo(x, finalRulerY + (isMajorTick ? 8 : 4)); // Use finalRulerY
+                ctx.stroke();
+
+                if (isMajorTick) {
+                    if (x >= rulerMargin - 0.1 && x <= rulerEnd + 0.1) {
+                        const label = formatTimeBiLabel(tBi);
+                        ctx.fillText(label, x, finalRulerY + 20); // Use finalRulerY
+                    }
+                }
+            }
+        } else {
+            console.warn("Final tick spacing invalid or zero span. Span:", spanBI);
+        }
+
+        // --- Draw Timeline Elements ---
+        timelineManager.drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd); // Uses manager's updated rulerY
+
+        // --- Draw "Now" Marker ---
+        interval.now = dateToCustomBi(new Date());
+        if (interval.now >= interval.start && interval.now <= interval.end) {
+             const nowX = timeBiToX(interval.now);
+             if (isFinite(nowX)) {
+                 ctx.lineWidth = 1.5;
+                 ctx.strokeStyle = '#ff0000';
+                 ctx.beginPath();
+                 ctx.moveTo(nowX, finalRulerY - 15); // Use finalRulerY
+                 ctx.lineTo(nowX, finalRulerY + 15); // Use finalRulerY
+                 ctx.stroke();
+                 ctx.fillStyle = '#ff0000';
+                 ctx.font = '10px sans-serif';
+                 ctx.textAlign = 'center';
+                 ctx.fillText('Now', nowX, finalRulerY - 18); // Use finalRulerY
+             }
+        }
+
+        // --- Draw Cursor Marker ---
+        if (interval.cursor >= CUSTOM_TIME_MIN_BI && interval.cursor >= interval.start && interval.cursor <= interval.end) {
+            const cursorX = timeBiToX(interval.cursor);
+            if (isFinite(cursorX)) {
+                 ctx.lineWidth = 1.5;
+                 ctx.strokeStyle = '#00cc00';
+                 ctx.beginPath();
+                 ctx.moveTo(cursorX, finalRulerY - 12); // Use finalRulerY
+                 ctx.lineTo(cursorX, finalRulerY + 12); // Use finalRulerY
+                 ctx.stroke();
+                 ctx.fillStyle = '#00cc00';
+                 ctx.beginPath();
+                 ctx.moveTo(cursorX - 4, finalRulerY - 12);
+                 ctx.lineTo(cursorX + 4, finalRulerY - 12);
+                 ctx.lineTo(cursorX, finalRulerY - 18);
+                 ctx.closePath();
+                 ctx.fill();
+             }
+        }
+
+        // --- Update Info Display --- (Unchanged)
         infoStartEl.textContent = `${getDateTimeStringFromTbi(interval.start)} (t=${formatTimeBiLabel(interval.start)})`;
         infoEndEl.textContent = `${getDateTimeStringFromTbi(interval.end)} (t=${formatTimeBiLabel(interval.end)})`;
         infoCursorEl.textContent = interval.cursor < CUSTOM_TIME_MIN_BI ? 'N/A' : `${getDateTimeStringFromTbi(interval.cursor)} (t=${formatTimeBiLabel(interval.cursor)})`;
         infoNowEl.textContent = `${getDateTimeStringFromTbi(interval.now)} (t=${formatTimeBiLabel(interval.now)})`;
 
-    } // End drawRuler
-
+    } // End drawRuler// End drawRuler
     // --- Animation Loop (Unchanged) ---
     function redraw() { requestAnimationFrame(drawRuler); }
 
