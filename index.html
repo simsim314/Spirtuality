@@ -3,16 +3,16 @@
 <head>
 <!-- ✅ Added Viewport Meta Tag for Mobile -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BigInt Timeline OOP (Universe Epoch, Cyclical Date) - Fix 2</title>
+<title>BigInt Timeline OOP (Universe Epoch, Cyclical Date) - Toggle Info</title>
 <style>
-  /* ✅ Added CSS to prevent default touch behaviors */
+  /* Base styles */
   html, body {
-    overscroll-behavior: none; /* Prevent pull-to-refresh */
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none; /* Standard syntax - prevent selection globally */
-    touch-action: none; /* Prevent default touch actions like scroll/zoom on the body */
-    height: 100%; /* Needed for 100vh below */
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: none;
+    height: 100%;
     width: 100%;
   }
 
@@ -25,7 +25,7 @@
     align-items: center;
     position: relative;
     height: 100vh;
-    background-color: #f0f0f0; /* Match canvas background */
+    background-color: #f0f0f0;
   }
 
   canvas {
@@ -38,7 +38,7 @@
     width: 100%;
     height: 100%;
     z-index: 0;
-    touch-action: none; /* Specifically disable default actions on canvas */
+    touch-action: none;
   }
 
   .title-banner {
@@ -48,26 +48,53 @@
     background: rgba(255, 255, 255, 0.9);
     padding: 8px 16px;
     border-radius: 8px;
-    user-select: none; /* Title specifically not selectable */
+    user-select: none;
     z-index: 2;
   }
 
   .info {
     position: absolute;
-    top: 60px;
+    top: 60px; /* Stays positioned relative to top */
     left: 10px;
     background: rgba(255, 255, 255, 0.8);
     padding: 6px 10px;
     border-radius: 4px;
     font-size: 12px;
-    user-select: text; /* ✅ Allow text selection specifically in this box */
+    user-select: text;
     z-index: 2;
-    /* ✅ REMOVED pointer-events: none; to allow interaction */
+    transition: opacity 0.3s ease-out; /* Add smooth transition */
   }
 
   .info span {
     display: block;
   }
+
+  /* --- ▼▼▼ NEW CSS ▼▼▼ --- */
+  /* Class to hide the info box */
+  .info-hidden {
+     opacity: 0;          /* Make it invisible */
+     pointer-events: none;/* Make it non-interactive when hidden */
+     /* We use opacity instead of display:none so the ruler positioning
+        logic doesn't jump if the box's initial height calculation was used */
+  }
+
+  /* Style for the toggle button */
+  .toggle-button {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      padding: 5px 10px;
+      background-color: rgba(200, 200, 200, 0.8);
+      border: 1px solid #888;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 3; /* Above title and info box */
+      font-family: monospace; /* Looks button-like */
+      font-size: 14px;
+      user-select: none; /* Prevent selecting button text */
+  }
+  /* --- ▲▲▲ NEW CSS END ▲▲▲ --- */
+
 </style>
 
 </head>
@@ -77,434 +104,100 @@
 
   <div class="title-banner">ABB Timeline — After Big Bang Time Explorer</div>
 
-<div class="info" id="info-display">
-  <span>Start: <span id="info-start"></span></span>
-  <span>End: <span id="info-end"></span></span>
-  <span>Cursor: <span id="info-cursor"></span></span>
-  <span>Now: <span id="info-now"></span></span>
-</div>
+  <!-- Info box (HTML unchanged) -->
+  <div class="info" id="info-display">
+    <span>Start: <span id="info-start"></span></span>
+    <span>End: <span id="info-end"></span></span>
+    <span>Cursor: <span id="info-cursor"></span></span>
+    <span>Now: <span id="info-now"></span></span>
+  </div>
+
+  <!-- --- ▼▼▼ NEW HTML ▼▼▼ --- -->
+  <button id="toggle-info-btn" class="toggle-button">Hide [-]</button>
+  <!-- --- ▲▲▲ NEW HTML END ▲▲▲ --- -->
+
 
 <canvas id="timelineCanvas"></canvas>
 <script>
-    // --- BigInt Constants and Time Scale ---
-    const SCALING_FACTOR = 10000n; // Units per year
-    const CUSTOM_TIME_MIN_BI = 0n; // Big Bang is t=0
-
-    // --- Date Conversion Anchor Points ---
-    const ABB_YEAR_AT_UNIX_EPOCH = 13_800_011_970n; // Target ABB Year for 1970-01-01 UTC
+    // --- Constants and State (Unchanged) ---
+    const SCALING_FACTOR = 10000n;
+    const CUSTOM_TIME_MIN_BI = 0n;
+    const ABB_YEAR_AT_UNIX_EPOCH = 13_800_011_970n;
     const ABB_TBI_AT_UNIX_EPOCH = ABB_YEAR_AT_UNIX_EPOCH * SCALING_FACTOR;
     const UNIX_EPOCH_MS = 0n;
-
-    // Maximum representable year (can be adjusted)
-    const MAX_YEARS_ABB = 150_000_000_000n; // ~150 Billion years ABB
+    const MAX_YEARS_ABB = 150_000_000_000n;
     const CUSTOM_TIME_MAX_BI = MAX_YEARS_ABB * SCALING_FACTOR;
-
-    // Time constants
     const MS_PER_SECOND_BI = 1000n;
     const SECONDS_PER_MINUTE_BI = 60n;
     const MINUTES_PER_HOUR_BI = 60n;
     const HOURS_PER_DAY_BI = 24n;
-    const DAYS_PER_YEAR_APPROX_BI = 3652425n; // Corresponds to 365.2425 days
-    const MS_PER_YEAR_BI = (MS_PER_SECOND_BI * SECONDS_PER_MINUTE_BI * MINUTES_PER_HOUR_BI * HOURS_PER_DAY_BI * DAYS_PER_YEAR_APPROX_BI) / 10000n; // 31,556,952,000 ms
+    const DAYS_PER_YEAR_APPROX_BI = 3652425n;
+    const MS_PER_YEAR_BI = (MS_PER_SECOND_BI * SECONDS_PER_MINUTE_BI * MINUTES_PER_HOUR_BI * HOURS_PER_DAY_BI * DAYS_PER_YEAR_APPROX_BI) / 10000n;
 
-
-    // --- Configuration & State ---
     const canvas = document.getElementById('timelineCanvas');
     const ctx = canvas.getContext('2d');
     const infoStartEl = document.getElementById('info-start');
     const infoEndEl = document.getElementById('info-end');
     const infoCursorEl = document.getElementById('info-cursor');
     const infoNowEl = document.getElementById('info-now');
+    const infoDisplay = document.getElementById('info-display'); // Get info box
+    const toggleInfoBtn = document.getElementById('toggle-info-btn'); // Get toggle button
 
-    // --- ✅ REVISED BigInt Time Conversion Functions (Identical to previous, core logic correct) ---
-    function dateToCustomBi(date) {
-        if (!date || isNaN(date.getTime())) {
-             try { date = new Date(); } catch { return ABB_TBI_AT_UNIX_EPOCH; }
-        }
-        try {
-            const targetMs = BigInt(date.getTime());
-            const msSinceUnixEpoch = targetMs - UNIX_EPOCH_MS;
-            let tBiDurationSinceEpoch = 0n;
-            if (MS_PER_YEAR_BI > 0n) {
-                tBiDurationSinceEpoch = (msSinceUnixEpoch * SCALING_FACTOR) / MS_PER_YEAR_BI;
-            }
-            let t = ABB_TBI_AT_UNIX_EPOCH + tBiDurationSinceEpoch;
-            t = t < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : t;
-            t = t > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : t;
-            return t;
-        } catch (e) {
-            console.error("Error in dateToCustomBi:", e);
-            return ABB_TBI_AT_UNIX_EPOCH;
-        }
+    // --- Time Conversion Functions (Unchanged) ---
+    function dateToCustomBi(date) { if (!date || isNaN(date.getTime())) { try { date = new Date(); } catch { return ABB_TBI_AT_UNIX_EPOCH; } } try { const targetMs = BigInt(date.getTime()); const msSinceUnixEpoch = targetMs - UNIX_EPOCH_MS; let tBiDurationSinceEpoch = 0n; if (MS_PER_YEAR_BI > 0n) { tBiDurationSinceEpoch = (msSinceUnixEpoch * SCALING_FACTOR) / MS_PER_YEAR_BI; } let t = ABB_TBI_AT_UNIX_EPOCH + tBiDurationSinceEpoch; t = t < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : t; t = t > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : t; return t; } catch (e) { console.error("Error in dateToCustomBi:", e); return ABB_TBI_AT_UNIX_EPOCH; } }
+    function customBiToDate(tBi) { if (typeof tBi !== 'bigint') return new Date(NaN); try { const tBiDifference = tBi - ABB_TBI_AT_UNIX_EPOCH; let msDifference = 0n; if (SCALING_FACTOR > 0n) { msDifference = (tBiDifference * MS_PER_YEAR_BI) / SCALING_FACTOR; } const targetMs = UNIX_EPOCH_MS + msDifference; const MAX_SAFE_MS_NUM = 8.64e15; const MIN_SAFE_MS_NUM = -8.64e15; if (targetMs > BigInt(MAX_SAFE_MS_NUM) || targetMs < BigInt(MIN_SAFE_MS_NUM)) { return new Date(NaN); } const targetMsNum = Number(targetMs); const calculatedDate = new Date(targetMsNum); if (isNaN(calculatedDate.getTime())) { return new Date(NaN); } return calculatedDate; } catch (e) { console.error("Error in customBiToDate:", e); return new Date(NaN); } }
+
+    // --- Helper Functions (Unchanged, including fixed getAstronomicalYear) ---
+    function getAstronomicalYear(tBi) { if (typeof tBi !== 'bigint' || tBi < 0n) { return null; } return tBi / SCALING_FACTOR; }
+    function getDateTimeStringFromTbi(tBi) { if (typeof tBi !== 'bigint') return "Invalid TBI Input"; const astronomicalYearBi = getAstronomicalYear(tBi); if (astronomicalYearBi === null) return "Invalid ABB Year"; const displayYearStr = astronomicalYearBi.toLocaleString(); const fractionalUnitsBi = tBi % SCALING_FACTOR; if (fractionalUnitsBi < 0n) { fractionalUnitsBi += SCALING_FACTOR; } let msFractionalBi = 0n; if (SCALING_FACTOR > 0n && MS_PER_YEAR_BI > 0n) { msFractionalBi = (fractionalUnitsBi * MS_PER_YEAR_BI) / SCALING_FACTOR; } else { return `${displayYearStr}-??-?? ??:??:?? ABB (Calc Error)`; } const baseYearStartMs = Date.UTC(2000, 0, 1, 0, 0, 0, 0); const msFractionalNum = Number(msFractionalBi); if (!Number.isFinite(msFractionalNum) || !Number.isSafeInteger(msFractionalNum)) { return `${displayYearStr}-??-?? ??:??:?? ABB (Unsafe Fraction)`; } const representativeDate = new Date(baseYearStartMs + msFractionalNum); if (isNaN(representativeDate.getTime())) { return `${displayYearStr}-??-?? ??:??:?? ABB (Date Error)`; } const month = (representativeDate.getUTCMonth() + 1).toString().padStart(2, '0'); const day = representativeDate.getUTCDate().toString().padStart(2, '0'); const hours = representativeDate.getUTCHours().toString().padStart(2, '0'); const minutes = representativeDate.getUTCMinutes().toString().padStart(2, '0'); const seconds = representativeDate.getUTCSeconds().toString().padStart(2, '0'); return `${displayYearStr}-${month}-${day} ${hours}:${minutes}:${seconds} ABB`; }
+    function formatTimeBiLabel(tBi) { if (typeof tBi !== 'bigint') return "Invalid"; let absValue = tBi < 0n ? -tBi : tBi; const sign = tBi < 0n ? "-" : ""; let intPart = absValue / SCALING_FACTOR; let fracPart = absValue % SCALING_FACTOR; let intPartStr = intPart.toLocaleString(); if (fracPart === 0n) { return sign + intPartStr; } else { let fracPartStr = fracPart.toString().padStart(SCALING_FACTOR.toString().length -1, '0'); fracPartStr = fracPartStr.replace(/0+$/, ''); return sign + intPartStr + (fracPartStr.length > 0 ? "." + fracPartStr : ""); } }
+    function timeBiToX(tBi) { const spanBI = interval.end - interval.start; if (spanBI <= 0n) return ctx.canvas.width * 0.1; let timeVal = typeof tBi === 'bigint' ? tBi : interval.start; const clamped_t = timeVal < interval.start ? interval.start : (timeVal > interval.end ? interval.end : timeVal); const numerator = Number(clamped_t - interval.start); const denominator = Number(spanBI); if (denominator === 0) return ctx.canvas.width * 0.1; const ratio = numerator / denominator; const rulerMargin = ctx.canvas.width * 0.1; const rulerWidth = ctx.canvas.width * 0.8; const xPos = rulerMargin + rulerWidth * ratio; return isFinite(xPos) ? xPos : rulerMargin; }
+    function xToTimeBi(x) { const canvasWidth = ctx.canvas.width; const rulerMargin = canvasWidth * 0.1; const rulerWidth = canvasWidth * 0.8; const rulerEnd = rulerMargin + rulerWidth; const clamped_x = Math.max(rulerMargin, Math.min(rulerEnd, x)); if (rulerWidth <= 0) return interval.start; const ratio = (clamped_x - rulerMargin) / rulerWidth; if (!isFinite(ratio)) return interval.start; const spanBI = interval.end - interval.start; const offsetNum = Number(spanBI) * ratio; if (!isFinite(offsetNum)) return interval.start; const offsetBI = BigInt(Math.round(offsetNum)); let calculatedTimeBI = interval.start + offsetBI; calculatedTimeBI = calculatedTimeBI < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : calculatedTimeBI; calculatedTimeBI = calculatedTimeBI > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : calculatedTimeBI; return calculatedTimeBI; }
+
+    // Using the sparser tick function from before
+    function calculateNiceTickSpacingBi(spanBi) {
+        if (spanBi <= 0n) { return { major: 1n * SCALING_FACTOR, minor: (1n * SCALING_FACTOR) / 10n || 1n }; }
+        const targetMajorTicks = 5.0; // Keep aiming for fewer ticks
+        const idealMajorSpacingNum = Number(spanBi) / targetMajorTicks;
+        if (idealMajorSpacingNum <= 0 || !isFinite(idealMajorSpacingNum)) { let fallbackMajor = spanBi / BigInt(Math.round(targetMajorTicks)) || 1n; fallbackMajor = fallbackMajor > 0n ? fallbackMajor : 1n; let fallbackMinor = fallbackMajor / 10n || 1n; fallbackMinor = fallbackMinor > 0n ? fallbackMinor : 1n; return { major: fallbackMajor, minor: fallbackMinor }; }
+        const magnitudeNum = Math.pow(10, Math.floor(Math.log10(idealMajorSpacingNum))); const residual = idealMajorSpacingNum / magnitudeNum; let niceMultiplierNum; if (residual <= 1.5) niceMultiplierNum = 1; else if (residual <= 3.5) niceMultiplierNum = 2; else if (residual <= 7.5) niceMultiplierNum = 5; else niceMultiplierNum = 10; let majorSpacingBi = BigInt(Math.max(1, Math.round(niceMultiplierNum * magnitudeNum))); majorSpacingBi = majorSpacingBi > 0n ? majorSpacingBi : 1n; let minorSpacingBi = majorSpacingBi / 10n; minorSpacingBi = minorSpacingBi > 0n ? minorSpacingBi : 1n; return { major: majorSpacingBi, minor: minorSpacingBi };
     }
-
-    function customBiToDate(tBi) {
-        if (typeof tBi !== 'bigint') return new Date(NaN);
-        try {
-            const tBiDifference = tBi - ABB_TBI_AT_UNIX_EPOCH;
-            let msDifference = 0n;
-            if (SCALING_FACTOR > 0n) {
-                msDifference = (tBiDifference * MS_PER_YEAR_BI) / SCALING_FACTOR;
-            }
-            const targetMs = UNIX_EPOCH_MS + msDifference;
-            const MAX_SAFE_MS_NUM = 8.64e15;
-            const MIN_SAFE_MS_NUM = -8.64e15;
-            if (targetMs > BigInt(MAX_SAFE_MS_NUM) || targetMs < BigInt(MIN_SAFE_MS_NUM)) {
-                return new Date(NaN);
-            }
-            const targetMsNum = Number(targetMs);
-            const calculatedDate = new Date(targetMsNum);
-            if (isNaN(calculatedDate.getTime())) {
-                return new Date(NaN);
-            }
-            return calculatedDate;
-        } catch (e) {
-            console.error("Error in customBiToDate:", e);
-            return new Date(NaN);
-        }
-    }
-
-    // --- Helper Functions ---
-
-    /**
-     * Calculates the Astronomical Year Number (Year 0 exists) based on tBi.
-     * Year 0 ABB is from tBi=0 to tBi=SCALING_FACTOR-1.
-     * Year 1 ABB is from tBi=SCALING_FACTOR to tBi=2*SCALING_FACTOR-1.
-     * @param {bigint} tBi The timeline value.
-     * @returns {bigint | null} The ABB year number, or null if input is invalid.
-     */
-    function getAstronomicalYear(tBi) {
-         if (typeof tBi !== 'bigint' || tBi < 0n) { return null; }
-         // ✅ FIX: Removed the +1n. Integer division gives the year number directly.
-         // Example: tBi=0 to 9999 -> Year 0. tBi=10000 to 19999 -> Year 1.
-         return tBi / SCALING_FACTOR;
-    }
-
-    function getDateTimeStringFromTbi(tBi) {
-        if (typeof tBi !== 'bigint') return "Invalid TBI Input";
-
-        const astronomicalYearBi = getAstronomicalYear(tBi); // Uses the fixed function
-        if (astronomicalYearBi === null) return "Invalid ABB Year";
-
-        const displayYearStr = astronomicalYearBi.toLocaleString();
-
-        const fractionalUnitsBi = tBi % SCALING_FACTOR;
-         if (fractionalUnitsBi < 0n) { fractionalUnitsBi += SCALING_FACTOR; }
-
-        let msFractionalBi = 0n;
-        if (SCALING_FACTOR > 0n && MS_PER_YEAR_BI > 0n) {
-            msFractionalBi = (fractionalUnitsBi * MS_PER_YEAR_BI) / SCALING_FACTOR;
-        } else {
-            return `${displayYearStr}-??-?? ??:??:?? ABB (Calc Error)`;
-        }
-
-        const baseYearStartMs = Date.UTC(2000, 0, 1, 0, 0, 0, 0);
-        const msFractionalNum = Number(msFractionalBi);
-
-        if (!Number.isFinite(msFractionalNum) || !Number.isSafeInteger(msFractionalNum)) {
-             return `${displayYearStr}-??-?? ??:??:?? ABB (Unsafe Fraction)`;
-        }
-
-        const representativeDate = new Date(baseYearStartMs + msFractionalNum);
-        if (isNaN(representativeDate.getTime())) {
-             return `${displayYearStr}-??-?? ??:??:?? ABB (Date Error)`;
-        }
-
-        const month = (representativeDate.getUTCMonth() + 1).toString().padStart(2, '0');
-        const day = representativeDate.getUTCDate().toString().padStart(2, '0');
-        const hours = representativeDate.getUTCHours().toString().padStart(2, '0');
-        const minutes = representativeDate.getUTCMinutes().toString().padStart(2, '0');
-        const seconds = representativeDate.getUTCSeconds().toString().padStart(2, '0');
-
-        return `${displayYearStr}-${month}-${day} ${hours}:${minutes}:${seconds} ABB`;
-    }
-
-    function formatTimeBiLabel(tBi) {
-         // (Function unchanged, was already correct for displaying t=value)
-         if (typeof tBi !== 'bigint') return "Invalid";
-         let absValue = tBi < 0n ? -tBi : tBi;
-         const sign = tBi < 0n ? "-" : "";
-         let intPart = absValue / SCALING_FACTOR;
-         let fracPart = absValue % SCALING_FACTOR;
-         let intPartStr = intPart.toLocaleString();
-         if (fracPart === 0n) {
-             return sign + intPartStr;
-         } else {
-             let fracPartStr = fracPart.toString().padStart(SCALING_FACTOR.toString().length -1, '0');
-             fracPartStr = fracPartStr.replace(/0+$/, '');
-             return sign + intPartStr + (fracPartStr.length > 0 ? "." + fracPartStr : "");
-         }
-    }
-
-    // --- Canvas Coordinate Conversion Functions (Unchanged) ---
-    function timeBiToX(tBi) {
-        const spanBI = interval.end - interval.start;
-        if (spanBI <= 0n) return ctx.canvas.width * 0.1;
-        let timeVal = typeof tBi === 'bigint' ? tBi : interval.start;
-        const clamped_t = timeVal < interval.start ? interval.start : (timeVal > interval.end ? interval.end : timeVal);
-        const numerator = Number(clamped_t - interval.start);
-        const denominator = Number(spanBI);
-        if (denominator === 0) return ctx.canvas.width * 0.1;
-        const ratio = numerator / denominator;
-        const rulerMargin = ctx.canvas.width * 0.1;
-        const rulerWidth = ctx.canvas.width * 0.8;
-        const xPos = rulerMargin + rulerWidth * ratio;
-        return isFinite(xPos) ? xPos : rulerMargin;
-    }
-
-    function xToTimeBi(x) {
-        const canvasWidth = ctx.canvas.width;
-        const rulerMargin = canvasWidth * 0.1;
-        const rulerWidth = canvasWidth * 0.8;
-        const rulerEnd = rulerMargin + rulerWidth;
-        const clamped_x = Math.max(rulerMargin, Math.min(rulerEnd, x));
-        if (rulerWidth <= 0) return interval.start;
-        const ratio = (clamped_x - rulerMargin) / rulerWidth;
-        if (!isFinite(ratio)) return interval.start;
-        const spanBI = interval.end - interval.start;
-        const offsetNum = Number(spanBI) * ratio;
-        if (!isFinite(offsetNum)) return interval.start;
-        const offsetBI = BigInt(Math.round(offsetNum));
-        let calculatedTimeBI = interval.start + offsetBI;
-        calculatedTimeBI = calculatedTimeBI < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : calculatedTimeBI;
-        calculatedTimeBI = calculatedTimeBI > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : calculatedTimeBI;
-        return calculatedTimeBI;
-    }
-
-      function calculateNiceTickSpacingBi(spanBi) {
-    if (spanBi <= 0n) {
-         // Default spacing if span is zero or negative
-         return { major: 1n * SCALING_FACTOR, minor: (1n * SCALING_FACTOR) / 10n || 1n };
-    }
-
-    // ✅ FIX: Changed targetMajorTicks back to 5.0 for less dense labels
-    const targetMajorTicks = 5.0; // Aim for about 5 major ticks on screen (was 10.0)
-    const idealMajorSpacingNum = Number(spanBi) / targetMajorTicks;
-
-    // Handle cases where span is extremely small or calculation fails
-    if (idealMajorSpacingNum <= 0 || !isFinite(idealMajorSpacingNum)) {
-        // Use the target number (5) for fallback calculation too
-        let fallbackMajor = spanBi / BigInt(Math.round(targetMajorTicks)) || 1n;
-        fallbackMajor = fallbackMajor > 0n ? fallbackMajor : 1n; // Ensure > 0
-        let fallbackMinor = fallbackMajor / 10n || 1n; // Minor still 1/10th of major
-        fallbackMinor = fallbackMinor > 0n ? fallbackMinor : 1n; // Ensure > 0
-        return { major: fallbackMajor, minor: fallbackMinor };
-    }
-
-    // Calculate a "nice" spacing based on powers of 10
-    const magnitudeNum = Math.pow(10, Math.floor(Math.log10(idealMajorSpacingNum)));
-    const residual = idealMajorSpacingNum / magnitudeNum;
-
-    // Determine the best multiplier (1, 2, 5, or 10)
-    let niceMultiplierNum;
-    if (residual <= 1.5) niceMultiplierNum = 1;
-    else if (residual <= 3.5) niceMultiplierNum = 2; // Using 1, 2, 5 is common practice
-    else if (residual <= 7.5) niceMultiplierNum = 5;
-    else niceMultiplierNum = 10;
-
-    // Calculate the major tick spacing as a BigInt
-    let majorSpacingBi = BigInt(Math.max(1, Math.round(niceMultiplierNum * magnitudeNum)));
-    majorSpacingBi = majorSpacingBi > 0n ? majorSpacingBi : 1n; // Ensure > 0
-
-    // Minor ticks are typically 1/10th of major ticks
-    let minorSpacingBi = majorSpacingBi / 10n;
-    minorSpacingBi = minorSpacingBi > 0n ? minorSpacingBi : 1n; // Ensure minor spacing is at least 1
-
-    return { major: majorSpacingBi, minor: minorSpacingBi };
-}
 
     // --- Timeline Element Classes (Unchanged) ---
-    class TimelineElement {
-        constructor(label, startTbi, endTbi, color) { this.label = label; this.startTbi = startTbi; this.endTbi = endTbi; this.color = color || '#888888'; this.height = 8; }
-        isVisible(interval) { return this.endTbi >= interval.start && this.startTbi <= interval.end; }
-        draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) { if (!this.isVisible(interval)) { return; } const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); if (endX > startX) { if (endX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; if (drawWidth > 0) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; const labelX = drawStartX + drawWidth / 2; if (drawWidth > ctx.measureText(this.label).width * 0.8) { ctx.fillText(this.label, labelX, yPos - 2); } else if (startX >= rulerMargin && startX <= rulerEnd) { ctx.textAlign = 'left'; ctx.fillText(this.label, startX + 3, yPos - 2); } } } } else if (endX === startX) { if (startX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; ctx.beginPath(); ctx.moveTo(startX, yPos); ctx.lineTo(startX - 3, yPos + this.height); ctx.lineTo(startX + 3, yPos + this.height); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.label, startX, yPos - 2); } } }
-    }
-    class SunElement extends TimelineElement {
-        constructor(startYearABB, endYearABB) { const startTbi = startYearABB * SCALING_FACTOR; const endTbi = endYearABB * SCALING_FACTOR; super('☉ Sun (Main Sequence)', startTbi, endTbi, 'rgba(255, 165, 0, 0.7)'); this.height = 10; }
-        draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) { if (!this.isVisible(interval)) return; const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); if (endX > startX && endX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; if (drawWidth > 0) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); ctx.fillStyle = '#cc8400'; ctx.font = '9px sans-serif'; const labelOffset = this.height + 2; if (startX >= rulerMargin - 5 && startX <= rulerEnd + 5) { ctx.textAlign = 'center'; ctx.fillText('Formed', startX, yPos + labelOffset); } if (endX >= rulerMargin - 5 && endX <= rulerEnd + 5) { ctx.textAlign = 'center'; ctx.fillText('End MS', endX, yPos + labelOffset); } ctx.fillStyle = '#000'; ctx.textAlign = 'center'; const labelX = drawStartX + drawWidth / 2; if (drawWidth > ctx.measureText(this.label).width * 0.8) { ctx.fillText(this.label, labelX, yPos - 2); } } } }
-    }
-    class DinosaurElement extends TimelineElement {
-         constructor(startYearABB, endYearABB) { const startTbi = startYearABB * SCALING_FACTOR; const endTbi = endYearABB * SCALING_FACTOR; super('Dinosaurs (Mesozoic Era)', startTbi, endTbi, 'rgba(0, 128, 0, 0.7)'); this.height = 6; }
-    }
-    class HumanElement extends TimelineElement {
-         constructor(startYearABB) { const startTbi = startYearABB * SCALING_FACTOR; super('Humans (Homo Sapiens)', startTbi, 0n /* Placeholder end */, 'rgba(0, 0, 255, 0.7)'); this.height = 4; }
-         draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) { this.endTbi = dateToCustomBi(new Date()); if (!this.isVisible(interval)) return; const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); if (endX >= rulerMargin && startX <= rulerEnd) { const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; ctx.fillStyle = this.color; if (drawWidth >= 1) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); } else if (startX >= rulerMargin && startX <= rulerEnd) { ctx.lineWidth = 1.5; ctx.strokeStyle = this.color; ctx.beginPath(); ctx.moveTo(startX, yPos - 2); ctx.lineTo(startX, yPos + this.height + 2); ctx.stroke(); } if (startX >= rulerMargin - 5 && startX <= rulerEnd + 5) { ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(this.label, startX + 4, yPos + this.height / 2 + 3); } } }
-    }
+    class TimelineElement { constructor(label, startTbi, endTbi, color) { this.label = label; this.startTbi = startTbi; this.endTbi = endTbi; this.color = color || '#888888'; this.height = 8; } isVisible(interval) { return this.endTbi >= interval.start && this.startTbi <= interval.end; } draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) { if (!this.isVisible(interval)) { return; } const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); if (endX > startX) { if (endX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; if (drawWidth > 0) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; const labelX = drawStartX + drawWidth / 2; if (drawWidth > ctx.measureText(this.label).width * 0.8) { ctx.fillText(this.label, labelX, yPos - 2); } else if (startX >= rulerMargin && startX <= rulerEnd) { ctx.textAlign = 'left'; ctx.fillText(this.label, startX + 3, yPos - 2); } } } } else if (endX === startX) { if (startX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; ctx.beginPath(); ctx.moveTo(startX, yPos); ctx.lineTo(startX - 3, yPos + this.height); ctx.lineTo(startX + 3, yPos + this.height); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.label, startX, yPos - 2); } } } }
+    class SunElement extends TimelineElement { constructor(startYearABB, endYearABB) { const startTbi = startYearABB * SCALING_FACTOR; const endTbi = endYearABB * SCALING_FACTOR; super('☉ Sun (Main Sequence)', startTbi, endTbi, 'rgba(255, 165, 0, 0.7)'); this.height = 10; } draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) { if (!this.isVisible(interval)) return; const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); if (endX > startX && endX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; if (drawWidth > 0) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); ctx.fillStyle = '#cc8400'; ctx.font = '9px sans-serif'; const labelOffset = this.height + 2; if (startX >= rulerMargin - 5 && startX <= rulerEnd + 5) { ctx.textAlign = 'center'; ctx.fillText('Formed', startX, yPos + labelOffset); } if (endX >= rulerMargin - 5 && endX <= rulerEnd + 5) { ctx.textAlign = 'center'; ctx.fillText('End MS', endX, yPos + labelOffset); } ctx.fillStyle = '#000'; ctx.textAlign = 'center'; const labelX = drawStartX + drawWidth / 2; if (drawWidth > ctx.measureText(this.label).width * 0.8) { ctx.fillText(this.label, labelX, yPos - 2); } } } } }
+    class DinosaurElement extends TimelineElement { constructor(startYearABB, endYearABB) { const startTbi = startYearABB * SCALING_FACTOR; const endTbi = endYearABB * SCALING_FACTOR; super('Dinosaurs (Mesozoic Era)', startTbi, endTbi, 'rgba(0, 128, 0, 0.7)'); this.height = 6; } }
+    class HumanElement extends TimelineElement { constructor(startYearABB) { const startTbi = startYearABB * SCALING_FACTOR; super('Humans (Homo Sapiens)', startTbi, 0n, 'rgba(0, 0, 255, 0.7)'); this.height = 4; } draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) { this.endTbi = dateToCustomBi(new Date()); if (!this.isVisible(interval)) return; const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); if (endX >= rulerMargin && startX <= rulerEnd) { const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; ctx.fillStyle = this.color; if (drawWidth >= 1) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); } else if (startX >= rulerMargin && startX <= rulerEnd) { ctx.lineWidth = 1.5; ctx.strokeStyle = this.color; ctx.beginPath(); ctx.moveTo(startX, yPos - 2); ctx.lineTo(startX, yPos + this.height + 2); ctx.stroke(); } if (startX >= rulerMargin - 5 && startX <= rulerEnd + 5) { ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(this.label, startX + 4, yPos + this.height / 2 + 3); } } } }
 
     // --- Timeline Manager (Unchanged) ---
-    class TimelineManager {
-        constructor(rulerY, verticalSpacing) { this.elements = []; this.rulerY = rulerY; this.verticalSpacing = verticalSpacing; }
-        addElement(element) { if (element instanceof TimelineElement) { this.elements.push(element); } else { console.warn("Attempted to add non-TimelineElement object:", element); } }
-        drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd) { this.elements.forEach((element, index) => { const yPos = this.rulerY - (index + 1) * this.verticalSpacing - element.height; try { element.draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd); } catch (e) { console.error("Error drawing element:", element.label, e); } }); }
-    }
+    class TimelineManager { constructor(rulerY, verticalSpacing) { this.elements = []; this.rulerY = rulerY; this.verticalSpacing = verticalSpacing; } addElement(element) { if (element instanceof TimelineElement) { this.elements.push(element); } else { console.warn("Attempted to add non-TimelineElement object:", element); } } drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd) { this.elements.forEach((element, index) => { const yPos = this.rulerY - (index + 1) * this.verticalSpacing - element.height; try { element.draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd); } catch (e) { console.error("Error drawing element:", element.label, e); } }); } }
 
-
-    // --- Initial State Setup (Unchanged) ---
-    const initialNowBi = dateToCustomBi(new Date());
-    const initialSpanYears = 100n;
-    const initialSpanBI = initialSpanYears * SCALING_FACTOR;
-    let interval = { start: initialNowBi - initialSpanBI / 2n, end:   initialNowBi + initialSpanBI / 2n, now:   initialNowBi, cursor: -1n };
-    interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start; interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end; if (interval.start >= interval.end) { if (interval.start >= CUSTOM_TIME_MAX_BI) { interval.start = CUSTOM_TIME_MAX_BI - initialSpanBI; interval.end = CUSTOM_TIME_MAX_BI; } else { interval.end = interval.start + initialSpanBI; } interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start; interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end; if (interval.start >= interval.end) { interval.start = CUSTOM_TIME_MIN_BI; interval.end = CUSTOM_TIME_MIN_BI + initialSpanBI; interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end; } }
-     interval.now = interval.now < interval.start ? interval.start : interval.now; interval.now = interval.now > interval.end ? interval.end : interval.now;
-    let pos = { x: 0, y: 0 };
-    let isTouching = false; let isPinching = false; let isPanning = false; let initialPinchDistance = 0; let touchPoints = []; let panStartX = 0; let panIntervalStartInitial = 0n; let touchStartTime = 0; const TAP_THRESHOLD_MS = 250; const TAP_THRESHOLD_PX = 10;
-
-    // --- Create and Populate Timeline Manager (Unchanged) ---
+    // --- Initial State & Timeline Population (Unchanged) ---
+    const initialNowBi = dateToCustomBi(new Date()); const initialSpanYears = 100n; const initialSpanBI = initialSpanYears * SCALING_FACTOR; let interval = { start: initialNowBi - initialSpanBI / 2n, end: initialNowBi + initialSpanBI / 2n, now: initialNowBi, cursor: -1n }; interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start; interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end; if (interval.start >= interval.end) { if (interval.start >= CUSTOM_TIME_MAX_BI) { interval.start = CUSTOM_TIME_MAX_BI - initialSpanBI; interval.end = CUSTOM_TIME_MAX_BI; } else { interval.end = interval.start + initialSpanBI; } interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start; interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end; if (interval.start >= interval.end) { interval.start = CUSTOM_TIME_MIN_BI; interval.end = CUSTOM_TIME_MIN_BI + initialSpanBI; interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end; } } interval.now = interval.now < interval.start ? interval.start : interval.now; interval.now = interval.now > interval.end ? interval.end : interval.now;
+    let pos = { x: 0, y: 0 }; let isTouching = false; let isPinching = false; let isPanning = false; let initialPinchDistance = 0; let touchPoints = []; let panStartX = 0; let panIntervalStartInitial = 0n; let touchStartTime = 0; const TAP_THRESHOLD_MS = 250; const TAP_THRESHOLD_PX = 10;
     const SUN_FORMED_ABB = 9_200_000_000n; const SUN_END_MAIN_SEQ_ABB = 18_800_000_000n; const DINO_START_ABB = 13_555_000_000n; const DINO_END_ABB = 13_734_000_000n; const HUMAN_SAPIENS_START_ABB = 13_799_700_000n;
-    const timelineManager = new TimelineManager(canvas.height * 0.5, 15);
-    timelineManager.addElement(new SunElement(SUN_FORMED_ABB, SUN_END_MAIN_SEQ_ABB));
-    timelineManager.addElement(new DinosaurElement(DINO_START_ABB, DINO_END_ABB));
-    timelineManager.addElement(new HumanElement(HUMAN_SAPIENS_START_ABB));
+    const timelineManager = new TimelineManager(canvas.height * 0.5, 15); timelineManager.addElement(new SunElement(SUN_FORMED_ABB, SUN_END_MAIN_SEQ_ABB)); timelineManager.addElement(new DinosaurElement(DINO_START_ABB, DINO_END_ABB)); timelineManager.addElement(new HumanElement(HUMAN_SAPIENS_START_ABB));
 
-    // --- Drawing Function ---
-        // --- Drawing Function ---
+    // --- Drawing Function (Using the revised ruler Y positioning) ---
     function drawRuler() {
-        const canvasWidth = ctx.canvas.width;
-        const canvasHeight = ctx.canvas.height;
-
-        // --- ▼▼▼ REVISED RULER Y CALCULATION ▼▼▼ ---
-
-        // 1. Define a minimum Y position based on info box CSS top + fixed offset
-        const INFO_BOX_CSS_TOP = 60; // From the .info CSS rule
-        const GUARANTEED_SPACE_BELOW_INFO = 80; // Generous space for info box height + padding
-        const minRulerY = INFO_BOX_CSS_TOP + GUARANTEED_SPACE_BELOW_INFO; // Absolute minimum Y coordinate
-
-        // 2. Calculate the ideal centered position
+        const canvasWidth = ctx.canvas.width; const canvasHeight = ctx.canvas.height;
+        const INFO_BOX_CSS_TOP = 60; const GUARANTEED_SPACE_BELOW_INFO = 80; const minRulerY = INFO_BOX_CSS_TOP + GUARANTEED_SPACE_BELOW_INFO;
         const centeredRulerY = canvasHeight * 0.5;
-
-        // 3. Define the maximum Y position allowed (to avoid collision with bottom)
-        const BOTTOM_MARGIN = 50; // Min space needed below ruler
-        const maxRulerY = canvasHeight - BOTTOM_MARGIN;
-
-        // 4. Determine the target Y:
-        //    Start with the centered position.
-        //    But ensure it's AT LEAST minRulerY (use Math.max).
+        const BOTTOM_MARGIN = 50; const maxRulerY = canvasHeight - BOTTOM_MARGIN;
         let targetRulerY = Math.max(centeredRulerY, minRulerY);
-
-        // 5. Clamp the target Y:
-        //    Ensure the result from step 4 doesn't exceed maxRulerY (use Math.min).
         const finalRulerY = Math.min(targetRulerY, maxRulerY);
 
-        // --- ▲▲▲ REVISED RULER Y CALCULATION END ▲▲▲ ---
-
-        // Ensure TimelineManager knows the final ruler Y position
         timelineManager.rulerY = finalRulerY;
-
-        // Clear canvas
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        const rulerMargin = canvasWidth * 0.1; const rulerWidth = canvasWidth * 0.8; const rulerEnd = rulerMargin + rulerWidth; ctx.lineWidth = 2; ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(rulerMargin, finalRulerY); ctx.lineTo(rulerEnd, finalRulerY); ctx.stroke();
+        const spanBI = interval.end - interval.start; let currentMajorSpacingBi = 0n; let currentMinorSpacingBi = 0n; if (spanBI > 0n) { const spacing = calculateNiceTickSpacingBi(spanBI); currentMajorSpacingBi = spacing.major; currentMinorSpacingBi = spacing.minor; } else { currentMajorSpacingBi = 1n * SCALING_FACTOR; currentMinorSpacingBi = currentMajorSpacingBi / 10n || 1n; }
+        if (currentMinorSpacingBi > 0n && currentMajorSpacingBi > 0n) { let remainder = interval.start % currentMinorSpacingBi; if (remainder < 0n) { remainder += currentMinorSpacingBi; } let firstTickTimeBi = interval.start - remainder + (remainder === 0n ? 0n : currentMinorSpacingBi); if (firstTickTimeBi < interval.start) { firstTickTimeBi += currentMinorSpacingBi; } ctx.lineWidth = 1; ctx.strokeStyle = '#666'; ctx.fillStyle = '#333'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; for (let tBi = firstTickTimeBi; tBi <= interval.end + currentMinorSpacingBi; tBi += currentMinorSpacingBi) { if (tBi < interval.start - currentMinorSpacingBi) continue; const x = timeBiToX(tBi); if (x < rulerMargin - 10 || x > rulerEnd + 10) continue; let isMajorTick = false; try { if (currentMajorSpacingBi > 0n) { isMajorTick = (tBi % currentMajorSpacingBi === 0n); } } catch (e) { console.warn("Modulo error calculating major tick", e); } ctx.beginPath(); ctx.moveTo(x, finalRulerY - (isMajorTick ? 8 : 4)); ctx.lineTo(x, finalRulerY + (isMajorTick ? 8 : 4)); ctx.stroke(); if (isMajorTick) { if (x >= rulerMargin - 0.1 && x <= rulerEnd + 0.1) { const label = formatTimeBiLabel(tBi); ctx.fillText(label, x, finalRulerY + 20); } } } } else { console.warn("Final tick spacing invalid or zero span. Span:", spanBI); }
+        timelineManager.drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd);
+        interval.now = dateToCustomBi(new Date()); if (interval.now >= interval.start && interval.now <= interval.end) { const nowX = timeBiToX(interval.now); if (isFinite(nowX)) { ctx.lineWidth = 1.5; ctx.strokeStyle = '#ff0000'; ctx.beginPath(); ctx.moveTo(nowX, finalRulerY - 15); ctx.lineTo(nowX, finalRulerY + 15); ctx.stroke(); ctx.fillStyle = '#ff0000'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Now', nowX, finalRulerY - 18); } }
+        if (interval.cursor >= CUSTOM_TIME_MIN_BI && interval.cursor >= interval.start && interval.cursor <= interval.end) { const cursorX = timeBiToX(interval.cursor); if (isFinite(cursorX)) { ctx.lineWidth = 1.5; ctx.strokeStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX, finalRulerY - 12); ctx.lineTo(cursorX, finalRulerY + 12); ctx.stroke(); ctx.fillStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX - 4, finalRulerY - 12); ctx.lineTo(cursorX + 4, finalRulerY - 12); ctx.lineTo(cursorX, finalRulerY - 18); ctx.closePath(); ctx.fill(); } }
+        infoStartEl.textContent = `${getDateTimeStringFromTbi(interval.start)} (t=${formatTimeBiLabel(interval.start)})`; infoEndEl.textContent = `${getDateTimeStringFromTbi(interval.end)} (t=${formatTimeBiLabel(interval.end)})`; infoCursorEl.textContent = interval.cursor < CUSTOM_TIME_MIN_BI ? 'N/A' : `${getDateTimeStringFromTbi(interval.cursor)} (t=${formatTimeBiLabel(interval.cursor)})`; infoNowEl.textContent = `${getDateTimeStringFromTbi(interval.now)} (t=${formatTimeBiLabel(interval.now)})`;
+    } // End drawRuler
 
-        // --- Draw Main Ruler Line ---
-        const rulerMargin = canvasWidth * 0.1;
-        const rulerWidth = canvasWidth * 0.8;
-        const rulerEnd = rulerMargin + rulerWidth;
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#333';
-        ctx.beginPath();
-        ctx.moveTo(rulerMargin, finalRulerY); // Use final calculated Y
-        ctx.lineTo(rulerEnd, finalRulerY);     // Use final calculated Y
-        ctx.stroke();
-
-        // --- Draw Ticks and Labels ---
-        // (Drawing logic remains the same, just uses finalRulerY)
-        const spanBI = interval.end - interval.start;
-        let currentMajorSpacingBi = 0n;
-        let currentMinorSpacingBi = 0n;
-
-        if (spanBI > 0n) {
-            // Use the sparser tick function if applied previously
-            const spacing = calculateNiceTickSpacingBi(spanBI);
-            currentMajorSpacingBi = spacing.major;
-            currentMinorSpacingBi = spacing.minor;
-        } else {
-            currentMajorSpacingBi = 1n * SCALING_FACTOR;
-            currentMinorSpacingBi = currentMajorSpacingBi / 10n || 1n;
-        }
-
-        if (currentMinorSpacingBi > 0n && currentMajorSpacingBi > 0n) {
-            let remainder = interval.start % currentMinorSpacingBi;
-            if (remainder < 0n) { remainder += currentMinorSpacingBi; }
-            let firstTickTimeBi = interval.start - remainder + (remainder === 0n ? 0n : currentMinorSpacingBi);
-            if (firstTickTimeBi < interval.start) { firstTickTimeBi += currentMinorSpacingBi; }
-
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#666';
-            ctx.fillStyle = '#333';
-            ctx.font = '10px sans-serif';
-            ctx.textAlign = 'center';
-
-            for (let tBi = firstTickTimeBi; tBi <= interval.end + currentMinorSpacingBi; tBi += currentMinorSpacingBi) {
-                if (tBi < interval.start - currentMinorSpacingBi) continue;
-                const x = timeBiToX(tBi);
-                if (x < rulerMargin - 10 || x > rulerEnd + 10) continue;
-
-                let isMajorTick = false;
-                try { if (currentMajorSpacingBi > 0n) { isMajorTick = (tBi % currentMajorSpacingBi === 0n); } }
-                catch (e) { console.warn("Modulo error calculating major tick", e); }
-
-                ctx.beginPath();
-                ctx.moveTo(x, finalRulerY - (isMajorTick ? 8 : 4)); // Use finalRulerY
-                ctx.lineTo(x, finalRulerY + (isMajorTick ? 8 : 4)); // Use finalRulerY
-                ctx.stroke();
-
-                if (isMajorTick) {
-                    if (x >= rulerMargin - 0.1 && x <= rulerEnd + 0.1) {
-                        const label = formatTimeBiLabel(tBi);
-                        ctx.fillText(label, x, finalRulerY + 20); // Use finalRulerY
-                    }
-                }
-            }
-        } else {
-            console.warn("Final tick spacing invalid or zero span. Span:", spanBI);
-        }
-
-        // --- Draw Timeline Elements ---
-        timelineManager.drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd); // Uses manager's updated rulerY
-
-        // --- Draw "Now" Marker ---
-        interval.now = dateToCustomBi(new Date());
-        if (interval.now >= interval.start && interval.now <= interval.end) {
-             const nowX = timeBiToX(interval.now);
-             if (isFinite(nowX)) {
-                 ctx.lineWidth = 1.5;
-                 ctx.strokeStyle = '#ff0000';
-                 ctx.beginPath();
-                 ctx.moveTo(nowX, finalRulerY - 15); // Use finalRulerY
-                 ctx.lineTo(nowX, finalRulerY + 15); // Use finalRulerY
-                 ctx.stroke();
-                 ctx.fillStyle = '#ff0000';
-                 ctx.font = '10px sans-serif';
-                 ctx.textAlign = 'center';
-                 ctx.fillText('Now', nowX, finalRulerY - 18); // Use finalRulerY
-             }
-        }
-
-        // --- Draw Cursor Marker ---
-        if (interval.cursor >= CUSTOM_TIME_MIN_BI && interval.cursor >= interval.start && interval.cursor <= interval.end) {
-            const cursorX = timeBiToX(interval.cursor);
-            if (isFinite(cursorX)) {
-                 ctx.lineWidth = 1.5;
-                 ctx.strokeStyle = '#00cc00';
-                 ctx.beginPath();
-                 ctx.moveTo(cursorX, finalRulerY - 12); // Use finalRulerY
-                 ctx.lineTo(cursorX, finalRulerY + 12); // Use finalRulerY
-                 ctx.stroke();
-                 ctx.fillStyle = '#00cc00';
-                 ctx.beginPath();
-                 ctx.moveTo(cursorX - 4, finalRulerY - 12);
-                 ctx.lineTo(cursorX + 4, finalRulerY - 12);
-                 ctx.lineTo(cursorX, finalRulerY - 18);
-                 ctx.closePath();
-                 ctx.fill();
-             }
-        }
-
-        // --- Update Info Display --- (Unchanged)
-        infoStartEl.textContent = `${getDateTimeStringFromTbi(interval.start)} (t=${formatTimeBiLabel(interval.start)})`;
-        infoEndEl.textContent = `${getDateTimeStringFromTbi(interval.end)} (t=${formatTimeBiLabel(interval.end)})`;
-        infoCursorEl.textContent = interval.cursor < CUSTOM_TIME_MIN_BI ? 'N/A' : `${getDateTimeStringFromTbi(interval.cursor)} (t=${formatTimeBiLabel(interval.cursor)})`;
-        infoNowEl.textContent = `${getDateTimeStringFromTbi(interval.now)} (t=${formatTimeBiLabel(interval.now)})`;
-
-    } // End drawRuler// End drawRuler
     // --- Animation Loop (Unchanged) ---
     function redraw() { requestAnimationFrame(drawRuler); }
 
@@ -512,16 +205,15 @@
     function clamp(value, min, max) { if (min > max) { [min, max] = [max, min]; } return Math.max(min, Math.min(max, value)); }
     function getDistance(p1, p2) { const dx = p1.x - p2.x; const dy = p1.y - p2.y; return Math.sqrt(dx * dx + dy * dy); }
 
-     // --- EVENT HANDLERS (Unchanged) ---
-     function handleResize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; redraw(); }
-     function handleMouseMove(event) { pos.x = event.clientX; pos.y = event.clientY; }
-     function handleMouseDown(event) { if (event.button !== 0 || isTouching) return; pos.x = event.clientX; pos.y = event.clientY; const rulerY = canvas.height * 0.5; if (Math.abs(pos.y - rulerY) < 50) { interval.cursor = xToTimeBi(pos.x); console.log("Cursor set (mouse):", interval.cursor.toString(), " -> ", getDateTimeStringFromTbi(interval.cursor)); redraw(); } }
-     function handleWheel(event) { if (event.target === canvas) { event.preventDefault(); } else { return; } const scrollDelta = event.deltaY; const isZoomingIn = scrollDelta < 0; const zoomFactor = isZoomingIn ? 0.80 : 1.20; const currentSpanBi = interval.end - interval.start; const minSpanBi = 10n; const maxPossibleSpan = CUSTOM_TIME_MAX_BI - CUSTOM_TIME_MIN_BI; if (isZoomingIn && currentSpanBi <= minSpanBi) { return; } if (!isZoomingIn && currentSpanBi >= maxPossibleSpan) { return; } const timeAtMouseBi = xToTimeBi(event.clientX); let newSpanNum = Number(currentSpanBi) * zoomFactor; let newSpanBi = BigInt(Math.max(1, Math.round(newSpanNum))); newSpanBi = newSpanBi < minSpanBi ? minSpanBi : newSpanBi; newSpanBi = newSpanBi > maxPossibleSpan ? maxPossibleSpan : newSpanBi; if (newSpanBi === currentSpanBi) { return; } let ratio = 0.5; if (currentSpanBi > 0n) { const mouseOffsetNum = Number(timeAtMouseBi - interval.start); const currentSpanNum = Number(currentSpanBi); if (currentSpanNum !== 0 && isFinite(mouseOffsetNum)) { ratio = mouseOffsetNum / currentSpanNum; ratio = clamp(ratio, 0, 1); } } const offsetNum = Number(newSpanBi) * ratio; if (!isFinite(offsetNum)) { console.warn("Invalid offset in wheel zoom"); return; } const offsetBi = BigInt(Math.round(offsetNum)); let newStart = timeAtMouseBi - offsetBi; let newEnd = newStart + newSpanBi; let needsAdjustment = false; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + newSpanBi; needsAdjustment = true; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; if (!needsAdjustment) { newStart = newEnd - newSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; } if (newStart >= newEnd) { console.warn("Wheel Zoom resulted in start >= end after clamping. Adjusting."); if (newEnd <= CUSTOM_TIME_MIN_BI + minSpanBi) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + minSpanBi; } else { newStart = newEnd - minSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; } interval.start = newStart; interval.end = newEnd; redraw(); }
-     function handleTouchStart(event) { if (event.target === canvas) { event.preventDefault(); } else { return; } isTouching = true; isPanning = false; isPinching = false; touchPoints = Array.from(event.touches).map(t => ({ id: t.identifier, x: t.clientX, y: t.clientY, initialX: t.clientX, initialY: t.clientY })); touchStartTime = performance.now(); if (touchPoints.length === 1) { isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; } else if (touchPoints.length === 2) { isPanning = false; isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } else { isPanning = false; isPinching = false; } }
-     function handleTouchMove(event) { if (!isTouching) return; if (event.target === canvas) { event.preventDefault(); } else { return; } const currentTouches = Array.from(event.touches); let activeTouchCount = 0; touchPoints.forEach(tp => { const current = currentTouches.find(ct => ct.identifier === tp.id); if (current) { tp.x = current.clientX; tp.y = current.clientY; activeTouchCount++; } }); touchPoints = touchPoints.filter(tp => currentTouches.some(ct => ct.identifier === tp.id)); if (isPinching && touchPoints.length < 2) { isPinching = false; if (touchPoints.length === 1) { isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; touchStartTime = performance.now(); } } if (isPanning && touchPoints.length !== 1) { isPanning = false; if (touchPoints.length === 2) { isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } } if (isPinching && touchPoints.length === 2) { const currentDistance = getDistance(touchPoints[0], touchPoints[1]); if (initialPinchDistance > 1 && currentDistance > 1) { const zoomFactor = initialPinchDistance / currentDistance; const pinchCenterX = (touchPoints[0].x + touchPoints[1].x) / 2; const timeAtPinchCenterBi = xToTimeBi(pinchCenterX); const currentSpanBi = interval.end - interval.start; const minSpanBi = 10n; const maxPossibleSpan = CUSTOM_TIME_MAX_BI - CUSTOM_TIME_MIN_BI; let newSpanNum = Number(currentSpanBi) * zoomFactor; let newSpanBi = BigInt(Math.max(1, Math.round(newSpanNum))); newSpanBi = newSpanBi < minSpanBi ? minSpanBi : newSpanBi; newSpanBi = newSpanBi > maxPossibleSpan ? maxPossibleSpan : newSpanBi; if (newSpanBi !== currentSpanBi) { let ratio = 0.5; if (currentSpanBi > 0n) { const centerOffsetNum = Number(timeAtPinchCenterBi - interval.start); const currentSpanNum = Number(currentSpanBi); if(currentSpanNum !== 0 && isFinite(centerOffsetNum)) { ratio = centerOffsetNum / currentSpanNum; ratio = clamp(ratio, 0, 1); } } const offsetNum = Number(newSpanBi) * ratio; if (!isFinite(offsetNum)) { console.warn("Invalid offset (pinch)"); return; } const offsetBi = BigInt(Math.round(offsetNum)); let newStart = timeAtPinchCenterBi - offsetBi; let newEnd = newStart + newSpanBi; let needsAdjustment = false; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + newSpanBi; needsAdjustment = true; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; if (!needsAdjustment) { newStart = newEnd - newSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; } if (newStart >= newEnd) { console.warn("Pinch Zoom resulted in start >= end. Clamping."); if (newEnd <= CUSTOM_TIME_MIN_BI + minSpanBi) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + minSpanBi; } else { newStart = newEnd - minSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; } interval.start = newStart; interval.end = newEnd; initialPinchDistance = currentDistance; if(touchPoints.length === 1) panIntervalStartInitial = newStart; redraw(); } } } else if (isPanning && touchPoints.length === 1) { const currentX = touchPoints[0].x; const deltaX = currentX - panStartX; const canvasWidth = ctx.canvas.width; const rulerWidth = canvasWidth * 0.8; const currentSpanBi = interval.end - interval.start; if (rulerWidth > 0 && currentSpanBi > 0n) { const tBiPerPixelNum = Number(currentSpanBi) / rulerWidth; if (!isFinite(tBiPerPixelNum)) { console.warn("Invalid tBiPerPixel"); return; } const deltaTbi = BigInt(Math.round(tBiPerPixelNum * deltaX)); let newStart = panIntervalStartInitial - deltaTbi; let newEnd = newStart + currentSpanBi; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + currentSpanBi; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; newStart = newEnd - currentSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; if (newStart >= newEnd) { console.warn("Pan resulted in invalid interval after clamping."); newStart = interval.start; newEnd = interval.end; } interval.start = newStart; interval.end = newEnd; redraw(); } } }
-     function handleTouchEnd(event) { if (!isTouching) return; const changedTouches = Array.from(event.changedTouches); const liftedTouches = []; const remainingTouchIDs = new Set(touchPoints.map(tp => tp.id)); changedTouches.forEach(lt => { const liftedPoint = touchPoints.find(tp => tp.id === lt.identifier); if(liftedPoint) { liftedTouches.push({...liftedPoint, finalX: lt.clientX, finalY: lt.clientY }); remainingTouchIDs.delete(lt.identifier); } if (liftedPoint && event.target === canvas) { event.preventDefault(); } }); const touchDuration = performance.now() - touchStartTime; if (isPanning && liftedTouches.length === 1 && touchPoints.length === 1) { const liftedPoint = liftedTouches[0]; const deltaX = liftedPoint.finalX - liftedPoint.initialX; const deltaY = liftedPoint.finalY - liftedPoint.initialY; const distanceMoved = Math.sqrt(deltaX * deltaX + deltaY * deltaY); if (touchDuration < TAP_THRESHOLD_MS && distanceMoved < TAP_THRESHOLD_PX) { const rulerY = canvas.height * 0.5; if (Math.abs(liftedPoint.finalY - rulerY) < 50) { interval.cursor = xToTimeBi(liftedPoint.finalX); console.log("Cursor set (tap):", interval.cursor.toString(), " -> ", getDateTimeStringFromTbi(interval.cursor)); redraw(); } } } touchPoints = touchPoints.filter(tp => remainingTouchIDs.has(tp.id)); if (touchPoints.length === 0) { isTouching = false; isPanning = false; isPinching = false; } else if (touchPoints.length === 1) { isPinching = false; isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; touchStartTime = performance.now(); } else if (touchPoints.length >= 2) { isPanning = false; isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } }
-     function handleTouchCancel(event) { touchPoints = []; isTouching = false; isPanning = false; isPinching = false; console.log("Touch Cancelled"); }
-
+    // --- EVENT HANDLERS (Interaction logic unchanged) ---
+    function handleResize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; redraw(); }
+    function handleMouseMove(event) { pos.x = event.clientX; pos.y = event.clientY; }
+    function handleMouseDown(event) { if (event.button !== 0 || isTouching) return; pos.x = event.clientX; pos.y = event.clientY; const rulerY = timelineManager.rulerY; /* Use manager's current rulerY */ if (Math.abs(pos.y - rulerY) < 50) { interval.cursor = xToTimeBi(pos.x); console.log("Cursor set (mouse):", interval.cursor.toString(), " -> ", getDateTimeStringFromTbi(interval.cursor)); redraw(); } }
+    function handleWheel(event) { if (event.target === canvas) { event.preventDefault(); } else { return; } const scrollDelta = event.deltaY; const isZoomingIn = scrollDelta < 0; const zoomFactor = isZoomingIn ? 0.80 : 1.20; const currentSpanBi = interval.end - interval.start; const minSpanBi = 10n; const maxPossibleSpan = CUSTOM_TIME_MAX_BI - CUSTOM_TIME_MIN_BI; if (isZoomingIn && currentSpanBi <= minSpanBi) { return; } if (!isZoomingIn && currentSpanBi >= maxPossibleSpan) { return; } const timeAtMouseBi = xToTimeBi(event.clientX); let newSpanNum = Number(currentSpanBi) * zoomFactor; let newSpanBi = BigInt(Math.max(1, Math.round(newSpanNum))); newSpanBi = newSpanBi < minSpanBi ? minSpanBi : newSpanBi; newSpanBi = newSpanBi > maxPossibleSpan ? maxPossibleSpan : newSpanBi; if (newSpanBi === currentSpanBi) { return; } let ratio = 0.5; if (currentSpanBi > 0n) { const mouseOffsetNum = Number(timeAtMouseBi - interval.start); const currentSpanNum = Number(currentSpanBi); if (currentSpanNum !== 0 && isFinite(mouseOffsetNum)) { ratio = mouseOffsetNum / currentSpanNum; ratio = clamp(ratio, 0, 1); } } const offsetNum = Number(newSpanBi) * ratio; if (!isFinite(offsetNum)) { console.warn("Invalid offset in wheel zoom"); return; } const offsetBi = BigInt(Math.round(offsetNum)); let newStart = timeAtMouseBi - offsetBi; let newEnd = newStart + newSpanBi; let needsAdjustment = false; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + newSpanBi; needsAdjustment = true; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; if (!needsAdjustment) { newStart = newEnd - newSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; } if (newStart >= newEnd) { console.warn("Wheel Zoom resulted in start >= end after clamping. Adjusting."); if (newEnd <= CUSTOM_TIME_MIN_BI + minSpanBi) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + minSpanBi; } else { newStart = newEnd - minSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; } interval.start = newStart; interval.end = newEnd; redraw(); }
+    function handleTouchStart(event) { if (event.target === canvas) { event.preventDefault(); } else { return; } isTouching = true; isPanning = false; isPinching = false; touchPoints = Array.from(event.touches).map(t => ({ id: t.identifier, x: t.clientX, y: t.clientY, initialX: t.clientX, initialY: t.clientY })); touchStartTime = performance.now(); if (touchPoints.length === 1) { isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; } else if (touchPoints.length === 2) { isPanning = false; isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } else { isPanning = false; isPinching = false; } }
+    function handleTouchMove(event) { if (!isTouching) return; if (event.target === canvas) { event.preventDefault(); } else { return; } const currentTouches = Array.from(event.touches); let activeTouchCount = 0; touchPoints.forEach(tp => { const current = currentTouches.find(ct => ct.identifier === tp.id); if (current) { tp.x = current.clientX; tp.y = current.clientY; activeTouchCount++; } }); touchPoints = touchPoints.filter(tp => currentTouches.some(ct => ct.identifier === tp.id)); if (isPinching && touchPoints.length < 2) { isPinching = false; if (touchPoints.length === 1) { isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; touchStartTime = performance.now(); } } if (isPanning && touchPoints.length !== 1) { isPanning = false; if (touchPoints.length === 2) { isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } } if (isPinching && touchPoints.length === 2) { const currentDistance = getDistance(touchPoints[0], touchPoints[1]); if (initialPinchDistance > 1 && currentDistance > 1) { const zoomFactor = initialPinchDistance / currentDistance; const pinchCenterX = (touchPoints[0].x + touchPoints[1].x) / 2; const timeAtPinchCenterBi = xToTimeBi(pinchCenterX); const currentSpanBi = interval.end - interval.start; const minSpanBi = 10n; const maxPossibleSpan = CUSTOM_TIME_MAX_BI - CUSTOM_TIME_MIN_BI; let newSpanNum = Number(currentSpanBi) * zoomFactor; let newSpanBi = BigInt(Math.max(1, Math.round(newSpanNum))); newSpanBi = newSpanBi < minSpanBi ? minSpanBi : newSpanBi; newSpanBi = newSpanBi > maxPossibleSpan ? maxPossibleSpan : newSpanBi; if (newSpanBi !== currentSpanBi) { let ratio = 0.5; if (currentSpanBi > 0n) { const centerOffsetNum = Number(timeAtPinchCenterBi - interval.start); const currentSpanNum = Number(currentSpanBi); if(currentSpanNum !== 0 && isFinite(centerOffsetNum)) { ratio = centerOffsetNum / currentSpanNum; ratio = clamp(ratio, 0, 1); } } const offsetNum = Number(newSpanBi) * ratio; if (!isFinite(offsetNum)) { console.warn("Invalid offset (pinch)"); return; } const offsetBi = BigInt(Math.round(offsetNum)); let newStart = timeAtPinchCenterBi - offsetBi; let newEnd = newStart + newSpanBi; let needsAdjustment = false; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + newSpanBi; needsAdjustment = true; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; if (!needsAdjustment) { newStart = newEnd - newSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; } if (newStart >= newEnd) { console.warn("Pinch Zoom resulted in start >= end. Clamping."); if (newEnd <= CUSTOM_TIME_MIN_BI + minSpanBi) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + minSpanBi; } else { newStart = newEnd - minSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; } interval.start = newStart; interval.end = newEnd; initialPinchDistance = currentDistance; if(touchPoints.length === 1) panIntervalStartInitial = newStart; redraw(); } } } else if (isPanning && touchPoints.length === 1) { const currentX = touchPoints[0].x; const deltaX = currentX - panStartX; const canvasWidth = ctx.canvas.width; const rulerWidth = canvasWidth * 0.8; const currentSpanBi = interval.end - interval.start; if (rulerWidth > 0 && currentSpanBi > 0n) { const tBiPerPixelNum = Number(currentSpanBi) / rulerWidth; if (!isFinite(tBiPerPixelNum)) { console.warn("Invalid tBiPerPixel"); return; } const deltaTbi = BigInt(Math.round(tBiPerPixelNum * deltaX)); let newStart = panIntervalStartInitial - deltaTbi; let newEnd = newStart + currentSpanBi; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + currentSpanBi; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; newStart = newEnd - currentSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; if (newStart >= newEnd) { console.warn("Pan resulted in invalid interval after clamping."); newStart = interval.start; newEnd = interval.end; } interval.start = newStart; interval.end = newEnd; redraw(); } } }
+    function handleTouchEnd(event) { if (!isTouching) return; const changedTouches = Array.from(event.changedTouches); const liftedTouches = []; const remainingTouchIDs = new Set(touchPoints.map(tp => tp.id)); changedTouches.forEach(lt => { const liftedPoint = touchPoints.find(tp => tp.id === lt.identifier); if(liftedPoint) { liftedTouches.push({...liftedPoint, finalX: lt.clientX, finalY: lt.clientY }); remainingTouchIDs.delete(lt.identifier); } if (liftedPoint && event.target === canvas) { event.preventDefault(); } }); const touchDuration = performance.now() - touchStartTime; if (isPanning && liftedTouches.length === 1 && touchPoints.length === 1) { const liftedPoint = liftedTouches[0]; const deltaX = liftedPoint.finalX - liftedPoint.initialX; const deltaY = liftedPoint.finalY - liftedPoint.initialY; const distanceMoved = Math.sqrt(deltaX * deltaX + deltaY * deltaY); if (touchDuration < TAP_THRESHOLD_MS && distanceMoved < TAP_THRESHOLD_PX) { const rulerY = timelineManager.rulerY; /* Use manager's current rulerY */ if (Math.abs(liftedPoint.finalY - rulerY) < 50) { interval.cursor = xToTimeBi(liftedPoint.finalX); console.log("Cursor set (tap):", interval.cursor.toString(), " -> ", getDateTimeStringFromTbi(interval.cursor)); redraw(); } } } touchPoints = touchPoints.filter(tp => remainingTouchIDs.has(tp.id)); if (touchPoints.length === 0) { isTouching = false; isPanning = false; isPinching = false; } else if (touchPoints.length === 1) { isPinching = false; isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; touchStartTime = performance.now(); } else if (touchPoints.length >= 2) { isPanning = false; isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } }
+    function handleTouchCancel(event) { touchPoints = []; isTouching = false; isPanning = false; isPinching = false; console.log("Touch Cancelled"); }
 
     // --- Initialization ---
     window.addEventListener('resize', handleResize);
@@ -532,6 +224,23 @@
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
     canvas.addEventListener('touchcancel', handleTouchCancel);
+
+
+    // --- ▼▼▼ NEW JAVASCRIPT ▼▼▼ ---
+    // Event listener for the toggle button
+    if (toggleInfoBtn && infoDisplay) {
+        toggleInfoBtn.addEventListener('click', () => {
+            // Toggle the 'info-hidden' class on the info box
+            const isHidden = infoDisplay.classList.toggle('info-hidden');
+
+            // Update button text based on the new state
+            toggleInfoBtn.textContent = isHidden ? 'Show [+]' : 'Hide [-]';
+        });
+    } else {
+        console.error("Could not find toggle button or info display elements.");
+    }
+    // --- ▲▲▲ NEW JAVASCRIPT END ▲▲▲ ---
+
 
     handleResize(); // Initial setup
     redraw(); // Start animation
