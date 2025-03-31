@@ -1,1068 +1,416 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>BigInt Timeline OOP (Universe Epoch, Cyclical Date) - Dynamic Now</title>
 <style>
-table, th, td {
-  border: 1px solid black;
-  word-wrap: break-word;
-}
+  body {
+    margin: 0;
+    overflow: hidden;
+    font-family: sans-serif;
+    /* Flexbox setup for vertical layout */
+    display: flex;
+    flex-direction: column;
+    /* Centers direct children (like the title) HORIZONTALLY because flex-direction is column */
+    align-items: center;
+    position: relative; /* Needed for absolute positioning of canvas/info */
+    height: 100vh; /* Ensure body takes full viewport height */
+  }
+
+  canvas {
+    display: block;
+    background-color: #f0f0f0;
+    cursor: crosshair;
+    /* Position canvas absolutely to cover the entire body */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* Place canvas behind other elements */
+  }
+
+  .title-banner {
+    /* This element is a flex item and will be centered by body's align-items */
+    margin-top: 10px; /* Space above the title */
+    font-size: 20px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 16px;
+    border-radius: 8px;
+    user-select: none; /* Prevent text selection */
+    z-index: 2; /* Place title above the canvas */
+  }
+
+  .info {
+    /* Position info box absolutely, independent of flex centering */
+    position: absolute;
+    top: 60px; /* Position below where the title sits */
+    left: 10px; /* Position in the top-left corner */
+    background: rgba(255, 255, 255, 0.8);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    user-select: text; /* Allow text selection */
+    z-index: 2; /* Place info box above the canvas */
+  }
+
+  .info span {
+    display: block; /* Stack info lines vertically */
+  }
 </style>
+
 </head>
+
 
 <body>
 
-<div id="con_list"  style="position:absolute;visibility:hidden;">
-<table class="fixed" id="tbl_contracts">
- <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th>Cost</th>
-    <th>Prize</th>
-    <th>End</th>
-    <th>Status</th>
-  </tr>
-  
-</table>
-<br>
-<button id="ok_list" type="button">OK</button>
-<button id="apply_list" type="button">Apply</button>
-<button id="cancel_list" type="button">Cancel</button>
+  <!-- ✅ ADD THIS DIV FOR THE TITLE -->
+  <div class="title-banner">ABB Timeline — After Big Bang Time Explorer</div>
 
+<div class="info" id="info-display">
+  <span>Start: <span id="info-start"></span></span>
+  <span>End: <span id="info-end"></span></span>
+  <span>Cursor: <span id="info-cursor"></span></span>
+  <span>Now: <span id="info-now"></span></span>
 </div>
 
-<div id="bd" style="position:absolute;visibility:hidden;">
-    <label for="fname">Set birth. Year/Month/Day/Hour/Minute:</label>
-  	<input type="text" id="bd_text" name="bd_text">
-    <button id="bd_save" type="button">Save</button>
-</div>
-
-<div id="new_con"  style="position:absolute;visibility:hidden;">
-    <label for="title_text">Title:</label>
-  	<input type="text" id="title_text"><br>
-    <label for="full_text">Text:</label>
-  	<input type="text" id="full_text"  style="width:80%"><br>
-    <label for="full_text">Cost:</label>
-    <input type="number" id="num_cost"><br>
-    <label for="full_text">Prize:</label>
-    <input type="number" id="num_prize"><br>
-    <label for="full_text">Repeat:</label>
-    <input type="number" id="num_loop">
-    
-    <input type="radio" id="rDay"  name="looptype" value="d">
-    <label for="rDay">Day</label>
-    <input type="radio" id="rMad"  name="looptype" value="m">
-    <label for="rMad">Mad</label><br>
-    <button id="new_save" type="button">Save</button>
-    <button id="new_cancel" type="button">Cancel</button><br>
-    
-</div>
-</body>
-  
-<script src="//cdn.jsdelivr.net/npm/pouchdb@7.1.1/dist/pouchdb.min.js"></script>
-
+<canvas id="timelineCanvas"></canvas>
 <script>
+    // --- BigInt Constants and Time Scale ---
+    const SCALING_FACTOR = 10000n;
+    const CUSTOM_TIME_MIN_BI = 0n;
+    const YEARS_AGO_EPOCH = 13800000000n; // Approx. age for historical calculations
+    const MAX_YEARS_FROM_EPOCH = 150000000000n;
+    const CUSTOM_TIME_MAX_BI = MAX_YEARS_FROM_EPOCH * SCALING_FACTOR;
+    // REMOVED: const NOW_TBI = YEARS_AGO_EPOCH * SCALING_FACTOR; // No longer using fixed NOW_TBI for dynamic 'Now'
 
-var db = new PouchDB('self_data-t45');
-const yearlen = 31556952; //year in seconds
-    
-var dx_idx = 0 ;
-var coins = 20;
-var _rev = -1;
-var all_contracts = [];
+    const MS_PER_SECOND_BI = 1000n;
+    const SECONDS_PER_MINUTE_BI = 60n;
+    const MINUTES_PER_HOUR_BI = 60n;
+    const HOURS_PER_DAY_BI = 24n;
+    const DAYS_PER_YEAR_APPROX_BI = 3652425n;
+    const MS_PER_YEAR_BI = (MS_PER_SECOND_BI * SECONDS_PER_MINUTE_BI * MINUTES_PER_HOUR_BI * HOURS_PER_DAY_BI * DAYS_PER_YEAR_APPROX_BI) / 10000n;
 
-db.get('me', function(err, doc) {
-if (err) {
-  dc1 = {
-	_id : 'me',
-	start: -1,
-	end : -1,
-  }
-  db.put(dc1);
-} 
+    // --- Configuration & State ---
+    const canvas = document.getElementById('timelineCanvas');
+    const ctx = canvas.getContext('2d');
+    const infoStartEl = document.getElementById('info-start');
+    const infoEndEl = document.getElementById('info-end');
+    const infoCursorEl = document.getElementById('info-cursor');
+    const infoNowEl = document.getElementById('info-now');
 
-	db.get('me', function(err, dc) {
-	me = dc;
-	me.start = Math.round(me.start);
-	me.end = Math.round(me.end);
-	console.log(me);
-	
+    // --- BigInt Time Conversion Functions ---
 
-
-	
-	});
-
-});
-
-db.get('idx', function(err, doc) {
-if (err) {
-  dc2 = {
-	_id: 'idx',
-	dx_idx: dx_idx,
-	coins: 20
-  }
-  db.put(dc2);
-} 
-
-	db.get('idx', function(err, dc) {
-
-	dx_idx = dc.dx_idx;
-	coins = dc.coins;
-	_rev = dc._rev;
-	
-	console.log(dc);
-	loadcontracts();
-
-	
-	});
-
-});
-
-var canvas = document.createElement('canvas');
-canvas.style.visibility = "visible";
-document.body.appendChild(canvas);
-
-
-// some hotfixes... ( ≖_≖)
-document.body.style.margin = 0;
-canvas.style.position = 'fixed';
-
-btn = document.createElement("BUTTON");
-btn.style.width = '50px';
-btn.style.height = '20px';
-btn.style.position = "absolute";
-btn.style.left = '0px';
-btn.style.top = '180px';
-btn.innerHTML = "Me";
-document.body.appendChild(btn);
-
-btn.onclick = function() 
-{
-	canvas.style.visibility = "hidden"; 
-	modal = document.getElementById("bd")
-    modal.style.visibility = "visible";
-    modal.style.top = '180px';
-    modal.style.left = '60px';
-}
-
-btn = document.createElement("BUTTON");
-btn.style.width = '50px';
-btn.style.height = '20px';
-btn.style.position = "absolute";
-btn.style.left = '0px';
-btn.style.top = '205px';
-btn.innerHTML = "Now";
-document.body.appendChild(btn);
-
-btn.onclick = function() 
-{
-	interval.now = calctime(new Date());
-    interval.start = 10000 * Math.floor(Math.round(interval.now) / 10000);
-    interval.end = interval.start + 10000
-    interval.scale = -1
-	redraw();
-}
-
-btn = document.createElement("BUTTON");
-btn.style.width = '50px';
-btn.style.height = '20px';
-btn.style.position = "absolute";
-btn.style.left = '0px';
-btn.style.top = '230px';
-btn.innerHTML = "New";
-document.body.appendChild(btn);
-
-btn.onclick = function() 
-{
-	canvas.style.visibility = "hidden"; 
-	modal = document.getElementById("new_con");
-    modal.style.visibility = "visible";
-    modal.style.top = '5px';
-    modal.style.left = '10px';
-	
-	db.get('idx', function(err, dc) {
-		_rev = dc._rev;
-		console.log("rev:" + _rev);
-	});
-}
-
-
-btn = document.createElement("BUTTON");
-btn.style.width = '50px';
-btn.style.height = '20px';
-btn.style.position = "absolute";
-btn.style.left = '0px';
-btn.style.top = '255px';
-btn.innerHTML = "List";
-document.body.appendChild(btn);
-
-btn.onclick = function() 
-{
-	add_all_contracts();
-	canvas.style.visibility = "hidden"; 
-	modal = document.getElementById("con_list");
-    modal.style.visibility = "visible";
-    modal.style.top = '5px';
-    modal.style.left = '55px';
-}
-
-retbtn = document.getElementById("apply_list");
-retbtn.onclick = function() 
-{
-	checkchange();
-}
-
-retbtn = document.getElementById("cancel_list");
-retbtn.onclick = function() 
-{
-	canvas.style.visibility = "visible"; 
-    modal = document.getElementById("con_list");
-    modal.style.visibility = "hidden";
-}
-
-retbtn = document.getElementById("ok_list");
-retbtn.onclick = function() 
-{
-	checkchange();
-	canvas.style.visibility = "visible"; 
-    modal = document.getElementById("con_list");
-    modal.style.visibility = "hidden";
-}
-
-
-canclebtn = document.getElementById("new_cancel");
-canclebtn.onclick = function() 
-{
-	canvas.style.visibility = "visible"; 
-    modal = document.getElementById("new_con");
-    modal.style.visibility = "hidden";
-    
-}
-
-savebtn = document.getElementById("new_save");
-savebtn.onclick = function() 
-{
-	newcontractfromUI();
-	canvas.style.visibility = "visible"; 
-    modal = document.getElementById("new_con");
-    modal.style.visibility = "hidden";
-}
-
-savebtn = document.getElementById("bd_save");
-savebtn.onclick = function() 
-{
-	text = document.getElementById("bd_text").value;
-    res = text.split("/");
-    
-    birthday = new Date(res[0], res[1] - 1, res[2], res[3], res[4], 0);
-	start = Math.round(calctime(birthday));
-    end = start + 1000000;
-    
-    var doc = {
-      _id: "me",
-	  _rev: me._rev,
-      start: start,
-      end: end
-      };
-	  
-      db.put(doc);
-    
-   db.get('me', function(err, dc) {
-		me = dc;
-		me.start = Math.round(me.start);
-		me.end = Math.round(me.end);
-	});
-  
-	canvas.style.visibility = "visible"; 
-	modal.style.visibility = "hidden";
-}
-
-// get canvas 2D context and set him correct size
-var ctx = canvas.getContext('2d');
-resize();
-
-// last known position
-var pos = { x: 0, y: 0 };
-var interval = {start: 0, end: 1000000000000000, scale: 10, now: 138000120194363, cursor: -1}
-
-/*
-doc = {
-     
-      "gain": 1,
-      "lose":0, 
-      "loop":0, 
-      "loop":"",
-      "text":"hi", 
-      "title":"hi", 
-      "result":0, 
-      "end":interval.end 
-      };
-	  
-add_contract(doc);
-table = document.getElementById("tbl_contracts");
-table.style.visibility = "visible";
-table.style.top = '205px';
-canvas.style.visibility = "hidden";
-*/
-
-drawruler();
-
-window.addEventListener('resize', resize);
-document.addEventListener('mousedown', draw);
-document.addEventListener('mousedown', setPosition);
-document.addEventListener('mouseenter', setPosition);
-
-// new position from mouse event
-function setPosition(e) {
-  pos.x = e.clientX;
-  pos.y = e.clientY;
-}
-
-// resize canvas
-function resize() {
-  ctx.canvas.width = window.innerWidth;
-  ctx.canvas.height = window.innerHeight;
-}
-
-function newcontract(gain, lose, loop, looptype, text, title, result, end)
-{
-	if(coins > lose)
-    	coins -= lose; 
-    else
-    	return; 
-		
-    dx_idx++;
-	console.log("rev: " + _rev);
-	console.log("dx_idx: " + dx_idx);
-	
-	var doc = {
-	  _id: "idx",
-	  _rev: _rev,
-	  dx_idx: dx_idx,
-	  coins: coins
-	  };
-	
-	db.put(doc)
-	
-	console.log("doc put fine");
-	
-	doc = {
-	  _id: 'contract' + (dx_idx - 1),
-	  "gain": gain,
-	  "lose":lose, 
-	  "loop":loop, 
-	  "looptype":looptype,
-	  "text":text, 
-	  "title":title, 
-	  "result":result, 
-	  "end":end 
-	  };
-	  
-	  db.put(doc); 
-	  
-	  console.log("doc put 2 fine");
-	
-	db.get('contract' + (dx_idx - 1), function(err, dc) {
-			dc = update_con(dc); 
-			console.log(dc);
-			all_contracts.push(dc);
-		});
-		
-	db.get('idx', function(err, dc) {
-		_rev = dc._rev;
-		console.log("rev:" + _rev);
-	});
-}
-
-function add_all_contracts()
-{
-	interval.now = calctime(new Date());
-	
-	console.log("add_all_contracts dx_idx:" + dx_idx);
-	for(var i = 0; i < dx_idx; i++)
-	{
-		console.log("a:" + i + ":" + all_contracts[i]);
-		add_contract(i, all_contracts[i]);
-	}
-}
-
-function add_contract(ci, doc)
-{
-	doc = update_con(doc);
-	
-	console.log(ci);
-	console.log(doc);
-	
-	var table = document.getElementById("tbl_contracts");
-	
-	if(ci + 1 >= table.rows.length)
-	{
-		var row = table.insertRow(1);
-		var celltitle = row.insertCell(0);
-		var celltext = row.insertCell(1);
-		var cellcost = row.insertCell(2);
-		var cellprize = row.insertCell(3);
-		var cellend = row.insertCell(4);
-		var cellresult = row.insertCell(5);
-	
-	}
-	else 
-	{
-		var row = table.rows[ci + 1];
-		var celltitle = row.cells[0];
-		var celltext = row.cells[1];
-		var cellcost = row.cells[2];
-		var cellprize = row.cells[3];
-		var cellend = row.cells[4];
-		var cellresult = row.cells[5];
-	}
-	
-	celltitle.innerHTML = "<div style='width: 50px;'>" + doc.title + "</div>";
-	celltext.innerHTML = "<div style='width: 250px;'>"  + doc.text + "</div>";
-	cellcost.innerHTML = "<input type=\"number\" style='width:40px'; id=\"cost_num_tbl" + ci + "\"  value=\"" + doc.lose + "\">";
-	cellprize.innerHTML = "<input type=\"number\" style='width:40px'; id=\"prize_num_tbl" + ci + "\"  value=\"" + doc.gain + "\">";
-	cellend.innerHTML = doc.end;
-	
-	//logic for finished and passed tasks
-	
-	ctype = contract_type(doc)
-	
-	status_flags = ""
-	status = ""
-	
-	if(ctype == "task")
-	{
-		if(doc.end < interval.now)
-		{
-			if(doc.result == -1)
-				doc.result = -2;
-			
-			status_flags += " disabled";
-		}
-
-		if(parseInt(doc.result) == 1)
-		{
-			status_flags += " disabled checked";
-			status = "Success";
-		}
-		
-		if(doc.result == 0)
-			status = "Fail";
-	}
-	else if(ctype == "statement")
-	{
-		//case statement 
-		if(doc.lose > 0 && doc.gain == 0)
-		{
-			status_flags = "checked disabled";
-			status = Math.round(100 * doc.lose / (doc.title.split(' ').length + doc.text.split(' ').length)) / 100; 
-		}
-	}		
-	else //(ctype == "routine")
-	{
-		if(doc.dic[doc.now] == -1)
-		{
-			status = "Loop";
-		}
-		else
-		{
-			status_flags += " disabled checked";
-			status = "Loop";
-		}
-	}
-	
-	cellresult.innerHTML = "<input type=\"checkbox\" id=\"res_num_tbl" + ci + "\" " +  status_flags + ">" + status;
-}
-
-function save_contract(cost, prize, result, doc, update_coins)
-{
-	console.log(doc); 
-	console.log(result); 
-	
-	if(update_coins)
-	{
-		var dci = {
-		  _id: 'idx',
-		  _rev: _rev,
-		  dx_idx: dx_idx,
-		  coins: coins
-		  };
-		
-		db.put(dci)
-		
-		db.get('idx', function(err, dc) {
-			_rev = dc._rev;
-			console.log("rev:" + _rev);
-		});
-	}	
-	
-	doc = {
-	  _id: doc._id,
-	  _rev : doc._rev,
-	  "gain": prize,
-	  "lose":cost, 
-	  "loop":doc.loop, 
-	  "looptype":doc.looptype,
-	  "text":doc.text, 
-	  "title":doc.title, 
-	  "result":result, 
-	  "end":doc.end 
-	  };
-	  
-	  db.put(doc); 
-	  
-	  db.get(doc._id, function(err, dc) {
-	  
-			for(var i = 0; i < dx_idx; i++)
-			{
-				if(all_contracts[i]._id == doc._id)
-				{
-					all_contracts[i] = dc;
-				}
-			}
-	  });
-		
-	
-}
-
-function contract_type(doc)
-{
-	if(doc.loop == "" || doc.loop == "0" || doc.loop == 0)
-	{
-		if(doc.gain > 0)
-			return "task";
-		else 
-			return "statement";
-	}
-	
-	return "routine";
-}
-
-function checkchange()
-{
-	coins = parseInt(coins)
-				
-	for(i = 0; i < dx_idx; i++)
-	{
-		var doc = all_contracts[i];
-		
-		oldcost = doc.lose;
-		oldprize = doc.gain;
-		oldresult = doc.result;
-		
-		cost_val  = parseInt(document.getElementById('cost_num_tbl' + i).value);
-		prize_val  = parseInt(document.getElementById('prize_num_tbl' + i).value);
-		checked = document.getElementById('res_num_tbl' + i).checked;
-		
-		var con_type = contract_type(doc);
-		
-		if(con_type == "task")
-		{
-			if(checked && doc.result != 1)
-			{
-				coins += parseInt(prize_val);
-				
-				save_contract(cost_val, prize_val, 1, doc, true);
-			}
-			
-			if(doc.result == -2)
-			{
-				save_contract(doc.lose, doc.gain, 0, doc, false);
-			}
-		}
-		else if (con_type == "statement")
-		{
-			if(oldcost != cost_val)
-			{
-				coins -= Math.abs(oldcost - cost_val);
-				save_contract(cost_val, 0, -1, doc, true);
-			}
-		}
-		else
-		{
-			if(checked && doc.dic[doc.now] == -1)
-			{
-				doc.dic[doc.now] = 1; 
-				doc.changed = true; 
-				coins += parseInt(prize_val);
-			}
-			
-			if(doc.changed)
-			{
-				console.log("checked 1");
-				save_contract(cost_val, prize_val, dic2str(doc.dic), doc, true);
-			}
-			
-		}
-		
-	}
-}
-
-function dic2str(dic)
-{
-	res = ""
-	
-	for(var key in dict) {
-		res += key + ":" + dict[key] + ";";
-	}
-
-	return res; 
-}
-
-function str2dic(str)
-{
-	if(str == -1)
-		str = ""; 
-		
-	dict = {}
-	
-	list = str.split(";");
-	
-	for(var i = 0; i < list.length - 1; i++)
-	{
-		var l = list[i].split(":");
-		
-		if(l.length == 2)
-			dict[l[0]] = l[1];
-	}
-	
-	return dict; 
-}
-
-function timestep(loop_type, loop, start_time)
-{
-	////Madras in day  = seconds in day divided by seconds in year i.e. day in year by 10000
-	interval.now = calctime(new Date());
-	dtime = loop; 
-	
-	if(loop_type == "d")
-		dtime *= (844000000.0) / yearlen;
-	
-	var time = start_time;
-	
-	i0 = Math.floor((interval.now - start_time) / dtime) - 2;
-	
-	for(var j = i0; j < i0 + 10; j++)
-	{
-		t0 = start_time + Math.round(dtime * j * 100) / 100; 
-		t1 = start_time + Math.round(dtime * (j + 1) * 100) / 100; 
-		
-		if(interval.now >= t0 && interval.now < t1)
-			return j; 
-	}
-}
-
-function newcontractfromUI()
-{
-  title = document.getElementById("title_text").value;
-  text = document.getElementById("full_text").value;
-  cost = document.getElementById("num_cost").value;
-  prize = document.getElementById("num_prize").value;
-  loop_step = document.getElementById("num_loop").value;
-  loop_type = ""
-  
-   if (document.getElementById('rDay').checked) 
-  	loop_type = "d";
-   else if (document.getElementById('rMad').checked) 
-  	loop_type = "m";
-    
-	if(loop_step != "")
-	{
-		if(parseInt(loop_step) > 0)
-			newcontract(prize, cost, loop_step, loop_type, text, title, "", interval.cursor);
-		else 
-			newcontract(prize, cost, loop_step, loop_type, text, title, -1, interval.cursor);
-			
-	}
-	else 
-		newcontract(prize, cost, loop_step, loop_type, text, title, -1, interval.cursor);
-}
-
-function update_con(dc)
-{
-	if(contract_type(dc) == "routine")
-	{	
-		dc.dic = str2dic(dc.result);
-		var k = timestep(dc.loop_type, dc.loop, dc.end);
-		dc.now = k; 
-		
-		dc.cahnged = false; 
-		
-		if(!(k in dc.dic))
-		{
-			dc.dic[k] = -1;
-			dc.cahnged = true; 
-		}
-		
-		for(key in dc.dic)
-		{
-			if(key != k && dc.dic[key] == -1)
-			{
-				dc.dic[key] = 0; 
-				dc.changed = true; 
-			}
-		}
-	}	
-	
-	return dc; 
-}
-
-function loadcontracts()
-{
-	for(var i = 0; i < dx_idx; i++)
-	{
-		db.get('contract' + i, function(err, dc) {
-			dc = update_con(dc); 
-			
-			console.log(dc);
-			all_contracts.push(dc);
-			
-		});
-	}
-}
-
-
-
-function line(x0, y0, x1, y1)
-{
-	ctx.beginPath();
-	ctx.moveTo(x0, y0);
-	ctx.lineTo(x1, y1);
-	ctx.stroke();
-}
-
-function time2x(t)
-{
-	idx = 100 * (t - interval.start) / ((interval.end - interval.start));
-	return ctx.canvas.width * 0.1 + ctx.canvas.width * 0.8 * idx / 100; 
-}
-
-function max(a, b)
-{
-	if(a > b)
-    	return a;
-        
-     return b;
-}
-
-function min(a, b)
-{
-	if(a < b)
-    	return a;
-        
-     return b;
-}
-
-dyself = 0; 
-
-function calcSelf() {
-	
-	d = interval.start - me.start;
-    
-	step = (interval.end - interval.start) / 100; 
-   
-    if(step > 1)
-    	d -= d % step; 
-     
-    if(step < 1)
-    	step = 1 
-        
-	for (j = 0; j <= 100; j++) {
-    
-    	tm =  me.start + d + j * step;
-        
-        if(tm < interval.start || tm > interval.end || tm < me.start || tm > me.end)
-        	continue; 
-        
-    	t0 = time2x(tm);
-    	
-        if((d + j * step) % (10 * step) == 0 || interval.scale <= -4)
-    	{
-        	line(t0, 140 + dyself, t0, 160 + dyself);    
-            ctx.fillStyle = "blue";
-            ctx.font = "bold 11px Arial";
-            ctx.fillText((d + j * step) / 10000, t0 - 5, 172 + dyself);  	
-            ctx.fillStyle = "black";
-
+    // ❗ CRITICAL dateToCustomBi: MUST correctly convert JS Date to the ABB timeline tBi
+    function dateToCustomBi(date) {
+        if (!date || isNaN(date.getTime())) {
+            console.warn("Invalid date provided to dateToCustomBi, using current time.");
+            try { date = new Date(); } catch { return YEARS_AGO_EPOCH * SCALING_FACTOR; } // Fallback if new Date fails
         }
-        else 
-        	line(t0, 147 + dyself, t0, 153 + dyself);    
 
-    }
-}
+        try {
+            // Base reference: The fixed point YEARS_AGO_EPOCH corresponds roughly to 'now'.
+            const referenceTbi = YEARS_AGO_EPOCH * SCALING_FACTOR;
+            const referenceDate = new Date(); // Use current date as the reference point matching referenceTbi
 
-function drawdata() {
+            const targetMs = BigInt(date.getTime());
+            const referenceMs = BigInt(referenceDate.getTime());
 
-	if(me.end < interval.start)
-    	return; 
-        
-    if(me.start > interval.end)
-    	return;
-        
-    t0 = time2x(max(interval.start, me.start));
-    t1 = time2x(min(interval.end, me.end));
-    
-    ctx.strokeStyle = "#0000ff";
-    line(t0, 150 + dyself, t1, 150 + dyself);
+            // Calculate the difference in milliseconds between the target date and the reference date ('now')
+            const msDifference = targetMs - referenceMs;
 
-	if(interval.start <= me.start && interval.end >= me.start)
-    		line(t0, 140 + dyself, t0, 160 + dyself);    
+            // Convert this millisecond difference into a tBi difference
+            let tBiDifference = 0n;
+            if (MS_PER_YEAR_BI > 0n) {
+                // Scale the ms difference by SCALING_FACTOR and divide by MS_PER_YEAR_BI
+                tBiDifference = (msDifference * SCALING_FACTOR) / MS_PER_YEAR_BI;
+            }
 
-    if(interval.start <= me.end && interval.end >= me.end)
-    	line(t1, 140 + dyself, t1, 160 + dyself);     
-    
-    calcSelf();
-    
-    ctx.strokeStyle = "#000000";
-	
-}
+            // Calculate the final tBi by adding the difference to the reference Tbi
+            let t = referenceTbi + tBiDifference;
 
-
-function datestring(date)
-{
-	year = date.getFullYear();
-    month = date.getMonth() + 1;
-    day = date.getDate();
-	
-    hours = date.getHours();
-    minutes = date.getMinutes();
-    
-	if(isNaN(year))
-		return ""; 
-		
-	return `${hours}:${minutes}  ${day}/${month}/${year}`; 
-}
-
-function drawruler() {
-
-ctx.font = "bold 32px Arial";
-ctx.fillText("Coins: " + coins, ctx.canvas.width / 2 - 140, 30);
-interval.now = calctime(new Date());
-
-ctx.font = "12px Arial";
-time = calcdate(interval.start);
-ctx.fillText(datestring(time), 5, 15);
-
-ctx.font = "12px Arial";
-time = calcdate(interval.end);
-ctx.fillText(datestring(time), ctx.canvas.width - 120, 15);
-
-ctx.strokeStyle  = "green";
-ctx.fillStyle  = "green";
-
-t0 = time2x(interval.cursor)
-if(t0 > 0 && t0 < ctx.canvas.width)
-
-line(t0, 50, t0, 180);  
-  
-ctx.font = "12px Arial";
-time = calcdate(interval.cursor);
-
-ctx.fillText(datestring(time), 300, 50);
-ctx.fillText(interval.cursor / 10000, 400, 50);
-var factor = (interval.cursor - interval.start) / (interval.end - interval.start);
-
-v = Math.round(factor * 10000) / 100;
-ctx.fillText(v, t0 - 10, 190);
-		
-ctx.beginPath();
-ctx.fillRect(t0 - 3, 35, 6, 25);
-ctx.stroke();
-
-ctx.strokeStyle  = "black";
-ctx.fillStyle  = "black";  
-			
-ctx.lineWidth = 1;
-ctx.lineCap = 'round';
-line(0, 100, ctx.canvas.width, 100)
-dx = ctx.canvas.width * 0.8 / 10; 
-
-
-dy = -40
-d = 8 -  ctx.canvas.width * 0.1
-line(d + ctx.canvas.width * 0.1, 160 + dy, d + ctx.canvas.width * 0.1 + dx, 160 + dy)
-line(d + ctx.canvas.width * 0.1, 155 + dy, d + ctx.canvas.width * 0.1, 165 + dy)
-line(d + ctx.canvas.width * 0.1 + dx, 155 + dy, d + ctx.canvas.width * 0.1 + dx, 165 + dy)
-
-ctx.font = "25px Arial";
-ctx.fillText("10  y", d + ctx.canvas.width * 0.1, 190 + dy);  	
-ctx.font = "12px Arial";
-ctx.fillText(interval.scale, d + ctx.canvas.width * 0.1 + 25, 175 + dy);  	
-
-ctx.font = "25px Arial";
-ctx.fillText(interval.start / 10000, ctx.canvas.width * 0.05, 50);  	
-ctx.fillText(interval.end / 10000, ctx.canvas.width * 0.65, 50);  	
-
-
-ctx.strokeStyle = '#ff0000';
-
-var i;
-i = 0;
-
-i = 100 * (interval.now - interval.start) / ((interval.end - interval.start));
-
-dx = ctx.canvas.width * 0.1 + ctx.canvas.width * 0.8 * i / 100; 
-
-line(dx, 60, dx, 140);
-
-ctx.strokeStyle = '#000000';
-
-for (i = 0; i <= 100; i++) {
-  dx = ctx.canvas.width * 0.1 + ctx.canvas.width * 0.8 * i / 100; 
-  if(i % 10 == 0)
-  {
-  	ctx.font = "25px Arial";
-	ctx.fillText(i, dx - 15, 80);  	
-	line(dx, 80, dx, 120);
-  }
-  else
-  {
-  if(i % 5 == 0)
-  {
-  line(dx, 90, dx, 110);
-  ctx.font = "10px Arial";
-	ctx.fillText(i, dx - 5, 120);  	
-	
-  }
-   else 
-   	line(dx, 95, dx, 105);
-  }
-  }
-}
-
-function float2int (value) {
-    return value | 0;
-}
-
-function calctime(date)
-{
-	initialYear = date.getFullYear();
-    
-    d = 0;
-    year = initialYear;
-    
-    while(year < 1971)
-    {
-    	year += 100
-        d += 100
-    }
-    
-    date.setFullYear(year)
-    
-   const base_year = 138000119700000;
-    
-    difference = 10 * date.getTime();
-    
-    date.setFullYear(initialYear);
-    
-    return base_year + (difference / yearlen) - d * 10000;
-}
-
-function calcdate(t)
-{
-	const yearlen = 31556952; //year in seconds
-    const zero_year = 138000110000000;
-    const base_year = 138000119700000;
-    
-    if(t < zero_year)
-    	return new Date();
-    
-    d = 0;
-    y = t; 
-    
-    while(y < base_year)
-    {
-    	y += 1000000;
-        d += 100;
-    }
-    
-    millisec = (y - base_year) * yearlen / 10;
-    
-    time = new Date(millisec);
-    time.setFullYear(time.getFullYear() - d);
-    
-    return time; 
-}
-
-
-function draw(e) {
-  // mouse left button must be pressed
-  if (e.buttons != 1 || canvas.style.visibility != "visible") 	        return; //zoom in/out
-   
-   pos.x = e.clientX;
-  pos.y = e.clientY;
-  dcanvas = ctx.canvas.width * 0.1;
-  
-  if(pos.y < 60)
-  {
-	    var factor = (pos.x - dcanvas) / (ctx.canvas.width * 0.8);
-		interval.cursor = interval.start + factor * (interval.end - interval.start);
-  }
-  else if(pos.y >= 60 && pos.y <= 180)
-  {
-  	
-    if(interval.scale == -5)
-    	d = (interval.end - interval.start);
-    else
-    	d = 0.1 * (interval.end - interval.start);
-    
-    if(pos.x < dcanvas)
-    {
-    	if(interval.start - d >= 0)
-        {
-    		interval.start -= d
-        	interval.end -= d
+            // Clamp to valid range
+            t = t < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : t;
+            t = t > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : t;
+            return t;
+        } catch (e) {
+            console.error("Error in dateToCustomBi:", e);
+            // Fallback to approximate 'Now' if calculation fails
+            return YEARS_AGO_EPOCH * SCALING_FACTOR;
         }
     }
-    
-    else if(pos.x >  ctx.canvas.width - dcanvas)
-    {
-    	if(interval.end + d < 1000000000000000)
-    	{
-        	interval.start += d
-        	interval.end += d
+
+
+    // This customBiToDate seems to be attempting Gregorian conversion.
+    // Let's keep the simpler getDateTimeStringFromTbi for display purposes,
+    // as converting far-future/past tBi back to Gregorian is problematic.
+    function customBiToDate(tBi) {
+        if (typeof tBi !== 'bigint') return new Date(NaN);
+
+        try {
+             // Base reference: The fixed point YEARS_AGO_EPOCH corresponds roughly to 'now'.
+             const referenceTbi = YEARS_AGO_EPOCH * SCALING_FACTOR;
+             const referenceDate = new Date(); // Use current date as the reference point matching referenceTbi
+
+             // Calculate tBi difference from the reference 'now'
+             const tBiDifference = tBi - referenceTbi;
+
+             // Convert tBi difference to millisecond difference
+             let msDifference = 0n;
+             if (SCALING_FACTOR > 0n) {
+                msDifference = (tBiDifference * MS_PER_YEAR_BI) / SCALING_FACTOR;
+             }
+
+             // Add ms difference to current time's ms
+             const referenceMs = BigInt(referenceDate.getTime());
+             const targetMs = referenceMs + msDifference;
+
+             // Check if representable by JS Date (Number)
+             const MAX_SAFE_MS_NUM = 8.64e15; // Max ms for JS Date
+             const MIN_SAFE_MS_NUM = -8.64e15; // Min ms for JS Date
+             if (targetMs > BigInt(MAX_SAFE_MS_NUM) || targetMs < BigInt(MIN_SAFE_MS_NUM)) {
+                return new Date(NaN); // Outside standard JS Date range
+             }
+
+            const targetMsNum = Number(targetMs);
+            const calculatedDate = new Date(targetMsNum);
+
+            // Final check if the resulting Date is valid
+            if (isNaN(calculatedDate.getTime())) { return new Date(NaN); }
+            return calculatedDate;
+
+        } catch (e) {
+            console.error("Error in customBiToDate:", e);
+            return new Date(NaN);
         }
     }
-    
-    else 
-    {
-    	if(interval.scale > -5)
-        {
-          var  zoom = 10 * (pos.x - dcanvas) / (ctx.canvas.width * 0.8);
-          zoom = parseInt(zoom, 10);
 
-          d = (interval.end - interval.start) / 10;
 
-          interval.start += zoom * d;
-          interval.end = interval.start + d; 
-          interval.scale -= 1;
+    function getAstronomicalYear(tBi) { /* ... as before ... */
+         if (typeof tBi !== 'bigint' || tBi < 0n) { return null; } if (tBi === 0n) return 1n; return tBi / SCALING_FACTOR + 1n;
+    }
+
+    // Using the surrogate year approach for cyclical time display
+    function getDateTimeStringFromTbi(tBi) {
+        if (typeof tBi !== 'bigint') return "Invalid";
+
+        const astronomicalYearBi = getAstronomicalYear(tBi);
+        if (astronomicalYearBi === null) return "Invalid Year";
+        const displayYearStr = astronomicalYearBi.toLocaleString(); // Just the ABB year number
+
+        // Calculate fractional part for time of year
+        const fractionalUnitsBi = tBi % SCALING_FACTOR; // Units within the current year (0 to SCALING_FACTOR-1)
+        let msFractionalBi = 0n;
+        if (SCALING_FACTOR > 0n && MS_PER_YEAR_BI > 0n) {
+             // Calculate how many milliseconds into the year this fraction represents
+             msFractionalBi = (fractionalUnitsBi * MS_PER_YEAR_BI) / SCALING_FACTOR;
+        } else {
+             return `${displayYearStr}-??-?? ??:??:?? ABB (Calc Error)`; // Handle potential division by zero
         }
-    }
-  }
-  else 
-  {
-  if(interval.scale < 10 && pos.x > 50)
-  {	
- 
-  	inter = 10 * (interval.end - interval.start); 
-    
-    interval.start = inter * parseInt(interval.start / inter, 10)
-  	interval.end = interval.start + inter;
-  
 
-    interval.scale += 1;
-    }
-  }
-  
- redraw();
-  
-}
 
-function redraw()
-{
-ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  drawruler();
- drawdata();
-}
+        // Use a surrogate Gregorian year (like 2000 or 1970) as a base
+        // to leverage Date object's handling of month/day/time from milliseconds.
+        // We only care about the *time within the year*, not the absolute year.
+        // Using UTC to avoid timezone offsets. A leap year base helps slightly.
+        const baseYearStartMs = Date.UTC(2000, 0, 1, 0, 0, 0, 0); // Start of Jan 1st, 2000 UTC
+
+        const msFractionalNum = Number(msFractionalBi);
+
+        if (!Number.isSafeInteger(msFractionalNum)) {
+            return `${displayYearStr}-??-?? ??:??:?? ABB (Unsafe Fraction)`;
+        }
+
+        // Create a representative date by adding the fractional milliseconds to the base date
+        const representativeDate = new Date(baseYearStartMs + msFractionalNum);
+
+        if (isNaN(representativeDate.getTime())) {
+            return `${displayYearStr}-??-?? ??:??:?? ABB (Date Error)`;
+        }
+
+        // Extract cyclical time components (month, day, time) from the representative date
+        const month = (representativeDate.getUTCMonth() + 1).toString().padStart(2, '0');
+        const day = representativeDate.getUTCDate().toString().padStart(2, '0'); // Day of month
+        const hours = representativeDate.getUTCHours().toString().padStart(2, '0');
+        const minutes = representativeDate.getUTCMinutes().toString().padStart(2, '0');
+        const seconds = representativeDate.getUTCSeconds().toString().padStart(2, '0');
+
+        // Combine the absolute ABB year with the cyclical time
+        return `${displayYearStr}-${month}-${day} ${hours}:${minutes}:${seconds} ABB`;
+    }
+
+
+    function formatTimeBiLabel(tBi) { /* ... as before ... */
+         if (typeof tBi !== 'bigint') return "Invalid"; let absValue = tBi < 0n ? -tBi : tBi; const sign = tBi < 0n ? "-" : ""; let intPart = absValue / SCALING_FACTOR; let fracPart = absValue % SCALING_FACTOR; let intPartStr = intPart.toLocaleString();
+         if (fracPart === 0n) { return sign + intPartStr; } else { let fracPartStr = fracPart.toString().padStart(SCALING_FACTOR.toString().length -1, '0'); fracPartStr = fracPartStr.replace(/0+$/, ''); return sign + intPartStr + (fracPartStr.length > 0 ? "." + fracPartStr : ""); }
+    }
+    function timeBiToX(tBi) { /* ... as before ... */
+        const spanBI = interval.end - interval.start; if (spanBI <= 0n) return ctx.canvas.width * 0.1; let timeVal = typeof tBi === 'bigint' ? tBi : interval.start; const clamped_t = timeVal < interval.start ? interval.start : (timeVal > interval.end ? interval.end : timeVal); const numerator = Number(clamped_t - interval.start); const denominator = Number(spanBI); if (denominator === 0) return ctx.canvas.width * 0.1; const ratio = numerator / denominator; const rulerMargin = ctx.canvas.width * 0.1; const rulerWidth = ctx.canvas.width * 0.8; const xPos = rulerMargin + rulerWidth * ratio; return isFinite(xPos) ? xPos : rulerMargin;
+    }
+    function xToTimeBi(x) { /* ... as before ... */
+        const canvasWidth = ctx.canvas.width; const rulerMargin = canvasWidth * 0.1; const rulerWidth = canvasWidth * 0.8; const rulerEnd = rulerMargin + rulerWidth; const clamped_x = Math.max(rulerMargin, Math.min(rulerEnd, x)); const ratio = (clamped_x - rulerMargin) / rulerWidth; if (!isFinite(ratio)) return interval.start; const spanBI = interval.end - interval.start; const offsetNum = Number(spanBI) * ratio; const offsetBI = BigInt(Math.round(offsetNum)); let calculatedTimeBI = interval.start + offsetBI; calculatedTimeBI = calculatedTimeBI < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : calculatedTimeBI; calculatedTimeBI = calculatedTimeBI > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : calculatedTimeBI; return calculatedTimeBI;
+    }
+     function calculateNiceTickSpacingBi(spanBi) { /* ... as before ... */
+        if (spanBi <= 0n) return { major: 1n * SCALING_FACTOR, minor: (1n * SCALING_FACTOR) / 10n || 1n }; const targetMajorTicks = 10.0; const idealMajorSpacingNum = Number(spanBi) / targetMajorTicks; if (idealMajorSpacingNum <= 0 || !isFinite(idealMajorSpacingNum)) { let fallbackMajor = spanBi / 5n || 1n; fallbackMajor = fallbackMajor > 0n ? fallbackMajor : 1n; let fallbackMinor = fallbackMajor / 10n || 1n; fallbackMinor = fallbackMinor > 0n ? fallbackMinor : 1n; return { major: fallbackMajor, minor: fallbackMinor }; } const magnitudeNum = Math.pow(10, Math.floor(Math.log10(idealMajorSpacingNum))); const residual = idealMajorSpacingNum / magnitudeNum; let niceMultiplierNum; if (residual <= 1.5) niceMultiplierNum = 1; else if (residual <= 3.5) niceMultiplierNum = 2; else if (residual <= 7.5) niceMultiplierNum = 5; else niceMultiplierNum = 10; let majorSpacingBi = BigInt(Math.max(1, Math.round(niceMultiplierNum * magnitudeNum))); majorSpacingBi = majorSpacingBi > 0n ? majorSpacingBi : 1n; let minorSpacingBi = majorSpacingBi / 10n; minorSpacingBi = minorSpacingBi > 0n ? minorSpacingBi : 1n; return { major: majorSpacingBi, minor: minorSpacingBi };
+    }
+
+    // --- Timeline Element Classes ---
+    class TimelineElement { /* ... as before ... */
+        constructor(label, startTbi, endTbi, color) { this.label = label; this.startTbi = startTbi; this.endTbi = endTbi; this.color = color || '#888888'; this.height = 8; }
+        isVisible(interval) { return this.endTbi >= interval.start && this.startTbi <= interval.end; }
+        draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) { if (!this.isVisible(interval)) { return; } const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); if (endX > startX && endX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; if (drawWidth > 0) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; const labelX = drawStartX + drawWidth / 2; if (drawWidth > ctx.measureText(this.label).width * 0.8) { ctx.fillText(this.label, labelX, yPos - 2); } else if (startX >= rulerMargin && startX <= rulerEnd) { ctx.fillText(this.label, startX + 3, yPos - 2); } } } else if (endX === startX && startX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; ctx.beginPath(); ctx.moveTo(startX, yPos); ctx.lineTo(startX - 3, yPos + this.height); ctx.lineTo(startX + 3, yPos + this.height); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.label, startX, yPos - 2); } }
+    }
+    class SunElement extends TimelineElement { /* ... as before ... */
+        constructor(startYearABB, endYearABB) { const startTbi = startYearABB * SCALING_FACTOR; const endTbi = endYearABB * SCALING_FACTOR; super('☉ Sun (Main Sequence)', startTbi, endTbi, 'rgba(255, 165, 0, 0.7)'); this.height = 10; }
+        draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) { if (!this.isVisible(interval)) return; const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); if (endX > startX && endX >= rulerMargin && startX <= rulerEnd) { ctx.fillStyle = this.color; const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; if (drawWidth > 0) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); ctx.fillStyle = '#cc8400'; ctx.font = '9px sans-serif'; const labelOffset = this.height + 2; if (startX >= rulerMargin - 5 && startX <= rulerEnd + 5) { ctx.textAlign = 'center'; ctx.fillText('Start', startX, yPos - 2); } if (endX >= rulerMargin - 5 && endX <= rulerEnd + 5) { ctx.textAlign = 'center'; ctx.fillText('End', endX, yPos - 2); } ctx.fillStyle = '#000'; ctx.textAlign = 'center'; const labelX = drawStartX + drawWidth / 2; if (drawWidth > ctx.measureText(this.label).width * 0.8) { ctx.fillText(this.label, labelX, yPos + this.height + 10); } } } }
+    }
+    class DinosaurElement extends TimelineElement { /* ... as before ... */
+         constructor(startYearsAgo, endYearsAgo) { const startYearABB = YEARS_AGO_EPOCH - startYearsAgo; const endYearABB = YEARS_AGO_EPOCH - endYearsAgo; const startTbi = startYearABB * SCALING_FACTOR; const endTbi = endYearABB * SCALING_FACTOR; super('Dinosaurs (Mesozoic Era)', startTbi, endTbi, 'rgba(0, 128, 0, 0.7)'); this.height = 6; }
+    }
+    class HumanElement extends TimelineElement { /* ... as before ... */
+         constructor(startYearsAgo) { const startYearABB = YEARS_AGO_EPOCH - startYearsAgo; const endYearABB = YEARS_AGO_EPOCH; /* Ends 'now' */ const startTbi = startYearABB * SCALING_FACTOR; /* Dynamic end below */ super('Humans (Homo Sapiens)', startTbi, 0n /* Placeholder end */, 'rgba(0, 0, 255, 0.7)'); this.height = 4; } // EndTbi will be set dynamically
+         draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd) {
+              this.endTbi = dateToCustomBi(new Date()); // ✅ Set dynamic end time here!
+              if (!this.isVisible(interval)) return;
+              const startX = timeBiToX(this.startTbi); const endX = timeBiToX(this.endTbi); // Use dynamic endX
+              if (endX >= rulerMargin && startX <= rulerEnd) { const drawStartX = Math.max(startX, rulerMargin); const drawEndX = Math.min(endX, rulerEnd); const drawWidth = drawEndX - drawStartX; ctx.fillStyle = this.color; if (drawWidth >= 1) { ctx.fillRect(drawStartX, yPos, drawWidth, this.height); } else if (startX >= rulerMargin && startX <= rulerEnd) { ctx.lineWidth = 1.5; ctx.strokeStyle = this.color; ctx.beginPath(); ctx.moveTo(startX, yPos - 2); ctx.lineTo(startX, yPos + this.height + 2); ctx.stroke(); } if (startX >= rulerMargin - 5 && startX <= rulerEnd + 5) { ctx.fillStyle = '#000'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(this.label, startX + 4, yPos + this.height / 2 + 3); } }
+         }
+    }
+    class TimelineManager { /* ... as before ... */
+        constructor(rulerY, verticalSpacing) { this.elements = []; this.rulerY = rulerY; this.verticalSpacing = verticalSpacing; }
+        addElement(element) { if (element instanceof TimelineElement) { this.elements.push(element); } else { console.warn("Attempted to add non-TimelineElement object:", element); } }
+        drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd) { this.elements.forEach((element, index) => { const yPos = this.rulerY - (index + 1) * this.verticalSpacing - element.height; try { element.draw(ctx, interval, timeBiToX, yPos, rulerMargin, rulerEnd); } catch (e) { console.error("Error drawing element:", element.label, e); } }); }
+    }
+
+
+    // --- Initial State Setup ---
+    // ✅ 1. Calculate initial 'Now' dynamically
+    const initialNowBi = dateToCustomBi(new Date());
+    const initialSpanYears = 100n; // Initial view span
+    const initialSpanBI = initialSpanYears * SCALING_FACTOR;
+
+    // ✅ 2. Use dynamic initialNowBi for centering the view
+    let interval = {
+        start: initialNowBi - initialSpanBI / 2n,
+        end:   initialNowBi + initialSpanBI / 2n,
+        now:   initialNowBi, // Set initial 'now' state
+        cursor: -1n
+    };
+    // Clamp initial interval...
+    interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start;
+    interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end;
+    // Ensure start < end after clamping
+    if (interval.start >= interval.end) {
+        interval.start = interval.end - initialSpanBI;
+        interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start;
+        if (interval.start >= interval.end) {
+             interval.end = interval.start + initialSpanBI;
+             interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end;
+         }
+    }
+     // Ensure initial 'now' is within the calculated initial view
+    interval.now = interval.now < interval.start ? interval.start : interval.now;
+    interval.now = interval.now > interval.end ? interval.end : interval.now;
+
+
+    let pos = { x: 0, y: 0 };
+
+    // --- Create and Populate Timeline Manager ---
+    const SUN_START_YEAR_ABB = YEARS_AGO_EPOCH - 4600000000n;
+    const SUN_END_YEAR_ABB = YEARS_AGO_EPOCH + 5000000000n;
+    const DINO_START_YEARS_AGO = 245000000n;
+    const DINO_END_YEARS_AGO = 66000000n;
+    const HUMAN_START_YEARS_AGO = 300000n; // Homo Sapiens start
+
+    const timelineManager = new TimelineManager(canvas.height * 0.5, 15); // Ruler Y, Spacing
+
+    timelineManager.addElement(new SunElement(SUN_START_YEAR_ABB, SUN_END_YEAR_ABB));
+    timelineManager.addElement(new DinosaurElement(DINO_START_YEARS_AGO, DINO_END_YEARS_AGO));
+    timelineManager.addElement(new HumanElement(HUMAN_START_YEARS_AGO)); // End time is dynamic now
+
+
+    // --- Drawing Function ---
+    function drawRuler() {
+        const canvasWidth = ctx.canvas.width;
+        const canvasHeight = ctx.canvas.height;
+        const rulerY = canvasHeight * 0.5;
+        const rulerMargin = canvasWidth * 0.1;
+        const rulerWidth = canvasWidth * 0.8;
+        const rulerEnd = rulerMargin + rulerWidth;
+
+        timelineManager.rulerY = rulerY; // Update manager's rulerY
+
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        ctx.lineWidth = 2; ctx.strokeStyle = '#333';
+        ctx.beginPath(); ctx.moveTo(rulerMargin, rulerY); ctx.lineTo(rulerEnd, rulerY); ctx.stroke();
+
+        // Calculate Ticks... (same logic)
+        const spanBI = interval.end - interval.start; let currentMajorSpacingBi = 0n; let currentMinorSpacingBi = 0n;
+        if (spanBI > 0n) { const spacing = calculateNiceTickSpacingBi(spanBI); currentMajorSpacingBi = spacing.major; currentMinorSpacingBi = spacing.minor; } else { currentMajorSpacingBi = 1n * SCALING_FACTOR; currentMinorSpacingBi = currentMajorSpacingBi / 10n || 1n; }
+
+        // Draw Ticks & Labels... (same logic)
+        if (currentMinorSpacingBi > 0n && currentMajorSpacingBi > 0n) {
+            let remainder = interval.start % currentMinorSpacingBi; if (remainder < 0n) { remainder += currentMinorSpacingBi; } let firstTickTimeBi = interval.start - remainder + (remainder === 0n ? 0n : currentMinorSpacingBi); if (firstTickTimeBi < interval.start) { firstTickTimeBi += currentMinorSpacingBi; } ctx.lineWidth = 1; ctx.strokeStyle = '#666'; ctx.fillStyle = '#333'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            for (let tBi = firstTickTimeBi; tBi <= interval.end + currentMinorSpacingBi; tBi += currentMinorSpacingBi) {
+                 if (tBi < interval.start - currentMinorSpacingBi) continue; const x = timeBiToX(tBi); if (x < rulerMargin - 10 || x > rulerEnd + 10) continue; let isMajorTick = false; try { isMajorTick = (tBi % currentMajorSpacingBi === 0n); } catch {} ctx.beginPath(); ctx.moveTo(x, rulerY - (isMajorTick ? 8 : 4)); ctx.lineTo(x, rulerY + (isMajorTick ? 8 : 4)); ctx.stroke(); if (isMajorTick) { if (x >= rulerMargin - 0.1 && x <= rulerEnd + 0.1) { const label = formatTimeBiLabel(tBi); ctx.fillText(label, x, rulerY + 20); } }
+            }
+        } else { console.warn("Final tick spacing invalid or zero span."); }
+
+        // Draw Timeline Elements via Manager
+        // ✅ HumanElement's endTbi is updated inside its draw method now
+        timelineManager.drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd);
+
+        // --- Draw 'Now' Line ---
+        // ✅ 3. Update interval.now dynamically EACH FRAME
+        interval.now = dateToCustomBi(new Date());
+        // Ensure 'Now' marker stays within visible bounds if view pans away
+        const nowTbiClampedForDraw = interval.now < interval.start ? interval.start : (interval.now > interval.end ? interval.end : interval.now);
+
+        if (interval.now >= interval.start && interval.now <= interval.end) { // Check if actual 'now' is in view range
+            const nowX = timeBiToX(interval.now); // Use the actual 'now' for X position
+            if (isFinite(nowX)) {
+                ctx.lineWidth = 1.5; ctx.strokeStyle = '#ff0000'; ctx.beginPath(); ctx.moveTo(nowX, rulerY - 15); ctx.lineTo(nowX, rulerY + 15); ctx.stroke();
+                ctx.fillStyle = '#ff0000'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Now', nowX, rulerY - 18);
+            }
+        } else {
+             // Optional: Indicate if 'Now' is off-screen? (Could add text or markers at edges)
+        }
+
+
+        // Draw Cursor Line... (same logic)
+        if (interval.cursor >= CUSTOM_TIME_MIN_BI && interval.cursor >= interval.start && interval.cursor <= interval.end) {
+            const cursorX = timeBiToX(interval.cursor);
+            if (isFinite(cursorX)) { ctx.lineWidth = 1.5; ctx.strokeStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX, rulerY - 12); ctx.lineTo(cursorX, rulerY + 12); ctx.stroke(); ctx.fillStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX - 4, rulerY - 12); ctx.lineTo(cursorX + 4, rulerY - 12); ctx.lineTo(cursorX, rulerY - 18); ctx.closePath(); ctx.fill(); }
+        }
+
+        // Update Info Display...
+        // ✅ Uses the dynamically updated interval.now from this frame
+        infoStartEl.textContent = `${getDateTimeStringFromTbi(interval.start)} (t=${formatTimeBiLabel(interval.start)})`;
+        infoEndEl.textContent = `${getDateTimeStringFromTbi(interval.end)} (t=${formatTimeBiLabel(interval.end)})`;
+        infoCursorEl.textContent = interval.cursor < CUSTOM_TIME_MIN_BI ? 'N/A' : `${getDateTimeStringFromTbi(interval.cursor)} (t=${formatTimeBiLabel(interval.cursor)})`;
+        // Display the dynamically calculated 'Now' value
+        infoNowEl.textContent = `${getDateTimeStringFromTbi(interval.now)} (t=${formatTimeBiLabel(interval.now)})`;
+
+    } // End drawRuler
+
+    function redraw() { requestAnimationFrame(drawRuler); }
+
+     // --- Event Handlers ---
+     function handleResize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; redraw(); }
+     function handleMouseMove(event) { pos.x = event.clientX; pos.y = event.clientY; }
+     function handleMouseDown(event) { /* ... as before ... */
+         if (event.button !== 0) return; pos.x = event.clientX; pos.y = event.clientY; const rulerY = canvas.height * 0.5; if (Math.abs(pos.y - rulerY) < 50) { interval.cursor = xToTimeBi(pos.x); console.log("Cursor set to tBi:", interval.cursor.toString(), " -> ", getDateTimeStringFromTbi(interval.cursor)); redraw(); } }
+    function handleWheel(event) { /* ... as before ... */
+        event.preventDefault(); const scrollDelta = event.deltaY; const zoomFactor = scrollDelta < 0 ? 0.80 : 1.20; const minSpanBi = 10n; const timeAtMouseBi = xToTimeBi(event.clientX); const currentSpanBi = interval.end - interval.start; const maxPossibleSpan = CUSTOM_TIME_MAX_BI - CUSTOM_TIME_MIN_BI; if (currentSpanBi <= minSpanBi && zoomFactor < 1) return; if (currentSpanBi >= maxPossibleSpan && zoomFactor > 1) return; let newSpanNum = Number(currentSpanBi) * zoomFactor; let newSpanBi = BigInt(Math.round(newSpanNum)); newSpanBi = newSpanBi > minSpanBi ? newSpanBi : minSpanBi; newSpanBi = newSpanBi > maxPossibleSpan ? maxPossibleSpan : newSpanBi; let ratio = 0.5; if (currentSpanBi > 0n) { const mouseOffsetNum = Number(timeAtMouseBi - interval.start); const currentSpanNum = Number(currentSpanBi); ratio = currentSpanNum === 0 ? 0.5 : mouseOffsetNum / currentSpanNum; ratio = Math.max(0, Math.min(1, ratio)); } const offsetNum = Number(newSpanBi) * ratio; const offsetBi = BigInt(Math.round(offsetNum)); let newStart = timeAtMouseBi - offsetBi; let newEnd = newStart + newSpanBi; let needsAdjustment = false; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + newSpanBi; needsAdjustment = true; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; if (!needsAdjustment) { newStart = newEnd - newSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; } if (newStart >= newEnd) { console.warn("Zoom resulted in start >= end."); if (newStart === CUSTOM_TIME_MAX_BI) { newStart = CUSTOM_TIME_MAX_BI - minSpanBi; newEnd = CUSTOM_TIME_MAX_BI; } else { newEnd = newStart + minSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; } interval.start = newStart; interval.end = newEnd; redraw();
+    }
+
+    // --- Initialization ---
+    window.addEventListener('resize', handleResize);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('wheel', handleWheel);
+    handleResize(); // Initial setup and draw
 </script>
 
+</body>
 </html>
