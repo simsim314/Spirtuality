@@ -1,61 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
+<!-- ✅ Added Viewport Meta Tag for Mobile -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BigInt Timeline OOP (Universe Epoch, Cyclical Date) - Dynamic Now</title>
 <style>
+  /* ✅ Added CSS to prevent default touch behaviors */
+  html, body {
+    overscroll-behavior: none; /* Prevent pull-to-refresh */
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none; /* Standard syntax */
+    touch-action: none; /* Prevent default touch actions like scroll/zoom on the body */
+    height: 100%; /* Needed for 100vh below */
+    width: 100%;
+  }
+
   body {
     margin: 0;
     overflow: hidden;
     font-family: sans-serif;
-    /* Flexbox setup for vertical layout */
     display: flex;
     flex-direction: column;
-    /* Centers direct children (like the title) HORIZONTALLY because flex-direction is column */
     align-items: center;
-    position: relative; /* Needed for absolute positioning of canvas/info */
-    height: 100vh; /* Ensure body takes full viewport height */
+    position: relative;
+    height: 100vh;
+    background-color: #f0f0f0; /* Match canvas background */
   }
 
   canvas {
     display: block;
     background-color: #f0f0f0;
     cursor: crosshair;
-    /* Position canvas absolutely to cover the entire body */
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0; /* Place canvas behind other elements */
+    z-index: 0;
+    touch-action: none; /* Specifically disable default actions on canvas */
   }
 
   .title-banner {
-    /* This element is a flex item and will be centered by body's align-items */
-    margin-top: 10px; /* Space above the title */
+    margin-top: 10px;
     font-size: 20px;
     font-weight: bold;
     background: rgba(255, 255, 255, 0.9);
     padding: 8px 16px;
     border-radius: 8px;
-    user-select: none; /* Prevent text selection */
-    z-index: 2; /* Place title above the canvas */
+    user-select: none;
+    z-index: 2;
   }
 
   .info {
-    /* Position info box absolutely, independent of flex centering */
     position: absolute;
-    top: 60px; /* Position below where the title sits */
-    left: 10px; /* Position in the top-left corner */
+    top: 60px;
+    left: 10px;
     background: rgba(255, 255, 255, 0.8);
     padding: 6px 10px;
     border-radius: 4px;
     font-size: 12px;
-    user-select: text; /* Allow text selection */
-    z-index: 2; /* Place info box above the canvas */
+    user-select: text;
+    z-index: 2;
+    /* Make info box non-interactive to touches passing through to canvas */
+    pointer-events: none;
   }
 
   .info span {
-    display: block; /* Stack info lines vertically */
+    display: block;
   }
 </style>
 
@@ -64,7 +76,6 @@
 
 <body>
 
-  <!-- ✅ ADD THIS DIV FOR THE TITLE -->
   <div class="title-banner">ABB Timeline — After Big Bang Time Explorer</div>
 
 <div class="info" id="info-display">
@@ -82,7 +93,6 @@
     const YEARS_AGO_EPOCH = 13800000000n; // Approx. age for historical calculations
     const MAX_YEARS_FROM_EPOCH = 150000000000n;
     const CUSTOM_TIME_MAX_BI = MAX_YEARS_FROM_EPOCH * SCALING_FACTOR;
-    // REMOVED: const NOW_TBI = YEARS_AGO_EPOCH * SCALING_FACTOR; // No longer using fixed NOW_TBI for dynamic 'Now'
 
     const MS_PER_SECOND_BI = 1000n;
     const SECONDS_PER_MINUTE_BI = 60n;
@@ -100,155 +110,30 @@
     const infoNowEl = document.getElementById('info-now');
 
     // --- BigInt Time Conversion Functions ---
-
-    // ❗ CRITICAL dateToCustomBi: MUST correctly convert JS Date to the ABB timeline tBi
-    function dateToCustomBi(date) {
-        if (!date || isNaN(date.getTime())) {
-            console.warn("Invalid date provided to dateToCustomBi, using current time.");
-            try { date = new Date(); } catch { return YEARS_AGO_EPOCH * SCALING_FACTOR; } // Fallback if new Date fails
-        }
-
-        try {
-            // Base reference: The fixed point YEARS_AGO_EPOCH corresponds roughly to 'now'.
-            const referenceTbi = YEARS_AGO_EPOCH * SCALING_FACTOR;
-            const referenceDate = new Date(); // Use current date as the reference point matching referenceTbi
-
-            const targetMs = BigInt(date.getTime());
-            const referenceMs = BigInt(referenceDate.getTime());
-
-            // Calculate the difference in milliseconds between the target date and the reference date ('now')
-            const msDifference = targetMs - referenceMs;
-
-            // Convert this millisecond difference into a tBi difference
-            let tBiDifference = 0n;
-            if (MS_PER_YEAR_BI > 0n) {
-                // Scale the ms difference by SCALING_FACTOR and divide by MS_PER_YEAR_BI
-                tBiDifference = (msDifference * SCALING_FACTOR) / MS_PER_YEAR_BI;
-            }
-
-            // Calculate the final tBi by adding the difference to the reference Tbi
-            let t = referenceTbi + tBiDifference;
-
-            // Clamp to valid range
-            t = t < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : t;
-            t = t > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : t;
-            return t;
-        } catch (e) {
-            console.error("Error in dateToCustomBi:", e);
-            // Fallback to approximate 'Now' if calculation fails
-            return YEARS_AGO_EPOCH * SCALING_FACTOR;
-        }
+    function dateToCustomBi(date) { /* ... as before ... */
+        if (!date || isNaN(date.getTime())) { try { date = new Date(); } catch { return YEARS_AGO_EPOCH * SCALING_FACTOR; } }
+        try { const referenceTbi = YEARS_AGO_EPOCH * SCALING_FACTOR; const referenceDate = new Date(); const targetMs = BigInt(date.getTime()); const referenceMs = BigInt(referenceDate.getTime()); const msDifference = targetMs - referenceMs; let tBiDifference = 0n; if (MS_PER_YEAR_BI > 0n) { tBiDifference = (msDifference * SCALING_FACTOR) / MS_PER_YEAR_BI; } let t = referenceTbi + tBiDifference; t = t < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : t; t = t > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : t; return t; } catch (e) { console.error("Error in dateToCustomBi:", e); return YEARS_AGO_EPOCH * SCALING_FACTOR; }
     }
-
-
-    // This customBiToDate seems to be attempting Gregorian conversion.
-    // Let's keep the simpler getDateTimeStringFromTbi for display purposes,
-    // as converting far-future/past tBi back to Gregorian is problematic.
-    function customBiToDate(tBi) {
+    function customBiToDate(tBi) { /* ... as before ... */
         if (typeof tBi !== 'bigint') return new Date(NaN);
-
-        try {
-             // Base reference: The fixed point YEARS_AGO_EPOCH corresponds roughly to 'now'.
-             const referenceTbi = YEARS_AGO_EPOCH * SCALING_FACTOR;
-             const referenceDate = new Date(); // Use current date as the reference point matching referenceTbi
-
-             // Calculate tBi difference from the reference 'now'
-             const tBiDifference = tBi - referenceTbi;
-
-             // Convert tBi difference to millisecond difference
-             let msDifference = 0n;
-             if (SCALING_FACTOR > 0n) {
-                msDifference = (tBiDifference * MS_PER_YEAR_BI) / SCALING_FACTOR;
-             }
-
-             // Add ms difference to current time's ms
-             const referenceMs = BigInt(referenceDate.getTime());
-             const targetMs = referenceMs + msDifference;
-
-             // Check if representable by JS Date (Number)
-             const MAX_SAFE_MS_NUM = 8.64e15; // Max ms for JS Date
-             const MIN_SAFE_MS_NUM = -8.64e15; // Min ms for JS Date
-             if (targetMs > BigInt(MAX_SAFE_MS_NUM) || targetMs < BigInt(MIN_SAFE_MS_NUM)) {
-                return new Date(NaN); // Outside standard JS Date range
-             }
-
-            const targetMsNum = Number(targetMs);
-            const calculatedDate = new Date(targetMsNum);
-
-            // Final check if the resulting Date is valid
-            if (isNaN(calculatedDate.getTime())) { return new Date(NaN); }
-            return calculatedDate;
-
-        } catch (e) {
-            console.error("Error in customBiToDate:", e);
-            return new Date(NaN);
-        }
+        try { const referenceTbi = YEARS_AGO_EPOCH * SCALING_FACTOR; const referenceDate = new Date(); const tBiDifference = tBi - referenceTbi; let msDifference = 0n; if (SCALING_FACTOR > 0n) { msDifference = (tBiDifference * MS_PER_YEAR_BI) / SCALING_FACTOR; } const referenceMs = BigInt(referenceDate.getTime()); const targetMs = referenceMs + msDifference; const MAX_SAFE_MS_NUM = 8.64e15; const MIN_SAFE_MS_NUM = -8.64e15; if (targetMs > BigInt(MAX_SAFE_MS_NUM) || targetMs < BigInt(MIN_SAFE_MS_NUM)) { return new Date(NaN); } const targetMsNum = Number(targetMs); const calculatedDate = new Date(targetMsNum); if (isNaN(calculatedDate.getTime())) { return new Date(NaN); } return calculatedDate; } catch (e) { console.error("Error in customBiToDate:", e); return new Date(NaN); }
     }
-
-
     function getAstronomicalYear(tBi) { /* ... as before ... */
          if (typeof tBi !== 'bigint' || tBi < 0n) { return null; } if (tBi === 0n) return 1n; return tBi / SCALING_FACTOR + 1n;
     }
-
-    // Using the surrogate year approach for cyclical time display
-    function getDateTimeStringFromTbi(tBi) {
-        if (typeof tBi !== 'bigint') return "Invalid";
-
-        const astronomicalYearBi = getAstronomicalYear(tBi);
-        if (astronomicalYearBi === null) return "Invalid Year";
-        const displayYearStr = astronomicalYearBi.toLocaleString(); // Just the ABB year number
-
-        // Calculate fractional part for time of year
-        const fractionalUnitsBi = tBi % SCALING_FACTOR; // Units within the current year (0 to SCALING_FACTOR-1)
-        let msFractionalBi = 0n;
-        if (SCALING_FACTOR > 0n && MS_PER_YEAR_BI > 0n) {
-             // Calculate how many milliseconds into the year this fraction represents
-             msFractionalBi = (fractionalUnitsBi * MS_PER_YEAR_BI) / SCALING_FACTOR;
-        } else {
-             return `${displayYearStr}-??-?? ??:??:?? ABB (Calc Error)`; // Handle potential division by zero
-        }
-
-
-        // Use a surrogate Gregorian year (like 2000 or 1970) as a base
-        // to leverage Date object's handling of month/day/time from milliseconds.
-        // We only care about the *time within the year*, not the absolute year.
-        // Using UTC to avoid timezone offsets. A leap year base helps slightly.
-        const baseYearStartMs = Date.UTC(2000, 0, 1, 0, 0, 0, 0); // Start of Jan 1st, 2000 UTC
-
-        const msFractionalNum = Number(msFractionalBi);
-
-        if (!Number.isSafeInteger(msFractionalNum)) {
-            return `${displayYearStr}-??-?? ??:??:?? ABB (Unsafe Fraction)`;
-        }
-
-        // Create a representative date by adding the fractional milliseconds to the base date
-        const representativeDate = new Date(baseYearStartMs + msFractionalNum);
-
-        if (isNaN(representativeDate.getTime())) {
-            return `${displayYearStr}-??-?? ??:??:?? ABB (Date Error)`;
-        }
-
-        // Extract cyclical time components (month, day, time) from the representative date
-        const month = (representativeDate.getUTCMonth() + 1).toString().padStart(2, '0');
-        const day = representativeDate.getUTCDate().toString().padStart(2, '0'); // Day of month
-        const hours = representativeDate.getUTCHours().toString().padStart(2, '0');
-        const minutes = representativeDate.getUTCMinutes().toString().padStart(2, '0');
-        const seconds = representativeDate.getUTCSeconds().toString().padStart(2, '0');
-
-        // Combine the absolute ABB year with the cyclical time
-        return `${displayYearStr}-${month}-${day} ${hours}:${minutes}:${seconds} ABB`;
+    function getDateTimeStringFromTbi(tBi) { /* ... as before ... */
+        if (typeof tBi !== 'bigint') return "Invalid"; const astronomicalYearBi = getAstronomicalYear(tBi); if (astronomicalYearBi === null) return "Invalid Year"; const displayYearStr = astronomicalYearBi.toLocaleString(); const fractionalUnitsBi = tBi % SCALING_FACTOR; let msFractionalBi = 0n; if (SCALING_FACTOR > 0n && MS_PER_YEAR_BI > 0n) { msFractionalBi = (fractionalUnitsBi * MS_PER_YEAR_BI) / SCALING_FACTOR; } else { return `${displayYearStr}-??-?? ??:??:?? ABB (Calc Error)`; } const baseYearStartMs = Date.UTC(2000, 0, 1, 0, 0, 0, 0); const msFractionalNum = Number(msFractionalBi); if (!Number.isSafeInteger(msFractionalNum)) { return `${displayYearStr}-??-?? ??:??:?? ABB (Unsafe Fraction)`; } const representativeDate = new Date(baseYearStartMs + msFractionalNum); if (isNaN(representativeDate.getTime())) { return `${displayYearStr}-??-?? ??:??:?? ABB (Date Error)`; } const month = (representativeDate.getUTCMonth() + 1).toString().padStart(2, '0'); const day = representativeDate.getUTCDate().toString().padStart(2, '0'); const hours = representativeDate.getUTCHours().toString().padStart(2, '0'); const minutes = representativeDate.getUTCMinutes().toString().padStart(2, '0'); const seconds = representativeDate.getUTCSeconds().toString().padStart(2, '0'); return `${displayYearStr}-${month}-${day} ${hours}:${minutes}:${seconds} ABB`;
     }
-
-
     function formatTimeBiLabel(tBi) { /* ... as before ... */
-         if (typeof tBi !== 'bigint') return "Invalid"; let absValue = tBi < 0n ? -tBi : tBi; const sign = tBi < 0n ? "-" : ""; let intPart = absValue / SCALING_FACTOR; let fracPart = absValue % SCALING_FACTOR; let intPartStr = intPart.toLocaleString();
-         if (fracPart === 0n) { return sign + intPartStr; } else { let fracPartStr = fracPart.toString().padStart(SCALING_FACTOR.toString().length -1, '0'); fracPartStr = fracPartStr.replace(/0+$/, ''); return sign + intPartStr + (fracPartStr.length > 0 ? "." + fracPartStr : ""); }
+         if (typeof tBi !== 'bigint') return "Invalid"; let absValue = tBi < 0n ? -tBi : tBi; const sign = tBi < 0n ? "-" : ""; let intPart = absValue / SCALING_FACTOR; let fracPart = absValue % SCALING_FACTOR; let intPartStr = intPart.toLocaleString(); if (fracPart === 0n) { return sign + intPartStr; } else { let fracPartStr = fracPart.toString().padStart(SCALING_FACTOR.toString().length -1, '0'); fracPartStr = fracPartStr.replace(/0+$/, ''); return sign + intPartStr + (fracPartStr.length > 0 ? "." + fracPartStr : ""); }
     }
     function timeBiToX(tBi) { /* ... as before ... */
         const spanBI = interval.end - interval.start; if (spanBI <= 0n) return ctx.canvas.width * 0.1; let timeVal = typeof tBi === 'bigint' ? tBi : interval.start; const clamped_t = timeVal < interval.start ? interval.start : (timeVal > interval.end ? interval.end : timeVal); const numerator = Number(clamped_t - interval.start); const denominator = Number(spanBI); if (denominator === 0) return ctx.canvas.width * 0.1; const ratio = numerator / denominator; const rulerMargin = ctx.canvas.width * 0.1; const rulerWidth = ctx.canvas.width * 0.8; const xPos = rulerMargin + rulerWidth * ratio; return isFinite(xPos) ? xPos : rulerMargin;
     }
     function xToTimeBi(x) { /* ... as before ... */
-        const canvasWidth = ctx.canvas.width; const rulerMargin = canvasWidth * 0.1; const rulerWidth = canvasWidth * 0.8; const rulerEnd = rulerMargin + rulerWidth; const clamped_x = Math.max(rulerMargin, Math.min(rulerEnd, x)); const ratio = (clamped_x - rulerMargin) / rulerWidth; if (!isFinite(ratio)) return interval.start; const spanBI = interval.end - interval.start; const offsetNum = Number(spanBI) * ratio; const offsetBI = BigInt(Math.round(offsetNum)); let calculatedTimeBI = interval.start + offsetBI; calculatedTimeBI = calculatedTimeBI < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : calculatedTimeBI; calculatedTimeBI = calculatedTimeBI > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : calculatedTimeBI; return calculatedTimeBI;
+        const canvasWidth = ctx.canvas.width; const rulerMargin = canvasWidth * 0.1; const rulerWidth = canvasWidth * 0.8; const rulerEnd = rulerMargin + rulerWidth; const clamped_x = Math.max(rulerMargin, Math.min(rulerEnd, x)); if (rulerWidth <= 0) return interval.start; // Avoid division by zero if ruler has no width
+        const ratio = (clamped_x - rulerMargin) / rulerWidth; if (!isFinite(ratio)) return interval.start; const spanBI = interval.end - interval.start; const offsetNum = Number(spanBI) * ratio; if (!isFinite(offsetNum)) return interval.start; // Avoid NaN offset
+        const offsetBI = BigInt(Math.round(offsetNum)); let calculatedTimeBI = interval.start + offsetBI; calculatedTimeBI = calculatedTimeBI < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : calculatedTimeBI; calculatedTimeBI = calculatedTimeBI > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : calculatedTimeBI; return calculatedTimeBI;
     }
      function calculateNiceTickSpacingBi(spanBi) { /* ... as before ... */
         if (spanBi <= 0n) return { major: 1n * SCALING_FACTOR, minor: (1n * SCALING_FACTOR) / 10n || 1n }; const targetMajorTicks = 10.0; const idealMajorSpacingNum = Number(spanBi) / targetMajorTicks; if (idealMajorSpacingNum <= 0 || !isFinite(idealMajorSpacingNum)) { let fallbackMajor = spanBi / 5n || 1n; fallbackMajor = fallbackMajor > 0n ? fallbackMajor : 1n; let fallbackMinor = fallbackMajor / 10n || 1n; fallbackMinor = fallbackMinor > 0n ? fallbackMinor : 1n; return { major: fallbackMajor, minor: fallbackMinor }; } const magnitudeNum = Math.pow(10, Math.floor(Math.log10(idealMajorSpacingNum))); const residual = idealMajorSpacingNum / magnitudeNum; let niceMultiplierNum; if (residual <= 1.5) niceMultiplierNum = 1; else if (residual <= 3.5) niceMultiplierNum = 2; else if (residual <= 7.5) niceMultiplierNum = 5; else niceMultiplierNum = 10; let majorSpacingBi = BigInt(Math.max(1, Math.round(niceMultiplierNum * magnitudeNum))); majorSpacingBi = majorSpacingBi > 0n ? majorSpacingBi : 1n; let minorSpacingBi = majorSpacingBi / 10n; minorSpacingBi = minorSpacingBi > 0n ? minorSpacingBi : 1n; return { major: majorSpacingBi, minor: minorSpacingBi };
@@ -284,36 +169,33 @@
 
 
     // --- Initial State Setup ---
-    // ✅ 1. Calculate initial 'Now' dynamically
     const initialNowBi = dateToCustomBi(new Date());
     const initialSpanYears = 100n; // Initial view span
     const initialSpanBI = initialSpanYears * SCALING_FACTOR;
 
-    // ✅ 2. Use dynamic initialNowBi for centering the view
-    let interval = {
-        start: initialNowBi - initialSpanBI / 2n,
-        end:   initialNowBi + initialSpanBI / 2n,
-        now:   initialNowBi, // Set initial 'now' state
-        cursor: -1n
+    let interval = { /* ... as before ... */
+        start: initialNowBi - initialSpanBI / 2n, end:   initialNowBi + initialSpanBI / 2n, now:   initialNowBi, cursor: -1n
     };
     // Clamp initial interval...
-    interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start;
-    interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end;
-    // Ensure start < end after clamping
-    if (interval.start >= interval.end) {
-        interval.start = interval.end - initialSpanBI;
-        interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start;
-        if (interval.start >= interval.end) {
-             interval.end = interval.start + initialSpanBI;
-             interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end;
-         }
-    }
+    interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start; interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end; if (interval.start >= interval.end) { interval.start = interval.end - initialSpanBI; interval.start = interval.start < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : interval.start; if (interval.start >= interval.end) { interval.end = interval.start + initialSpanBI; interval.end = interval.end > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : interval.end; } }
      // Ensure initial 'now' is within the calculated initial view
-    interval.now = interval.now < interval.start ? interval.start : interval.now;
-    interval.now = interval.now > interval.end ? interval.end : interval.now;
+    interval.now = interval.now < interval.start ? interval.start : interval.now; interval.now = interval.now > interval.end ? interval.end : interval.now;
 
 
     let pos = { x: 0, y: 0 };
+
+    // --- ✅ TOUCH STATE VARIABLES ---
+    let isTouching = false;
+    let isPinching = false;
+    let isPanning = false;
+    let initialPinchDistance = 0;
+    let touchPoints = []; // Stores active touch points: {id, x, y, initialX, initialY}
+    let panStartX = 0; // Initial X of the panning finger
+    let panIntervalStartInitial = 0n; // interval.start when panning began
+    let touchStartTime = 0; // Timestamp of touchstart
+    const TAP_THRESHOLD_MS = 250; // Max duration for a tap (milliseconds)
+    const TAP_THRESHOLD_PX = 10; // Max movement distance for a tap (pixels)
+
 
     // --- Create and Populate Timeline Manager ---
     const SUN_START_YEAR_ABB = YEARS_AGO_EPOCH - 4600000000n;
@@ -330,85 +212,205 @@
 
 
     // --- Drawing Function ---
-    function drawRuler() {
-        const canvasWidth = ctx.canvas.width;
-        const canvasHeight = ctx.canvas.height;
-        const rulerY = canvasHeight * 0.5;
-        const rulerMargin = canvasWidth * 0.1;
-        const rulerWidth = canvasWidth * 0.8;
-        const rulerEnd = rulerMargin + rulerWidth;
-
-        timelineManager.rulerY = rulerY; // Update manager's rulerY
-
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        ctx.lineWidth = 2; ctx.strokeStyle = '#333';
-        ctx.beginPath(); ctx.moveTo(rulerMargin, rulerY); ctx.lineTo(rulerEnd, rulerY); ctx.stroke();
-
-        // Calculate Ticks... (same logic)
-        const spanBI = interval.end - interval.start; let currentMajorSpacingBi = 0n; let currentMinorSpacingBi = 0n;
-        if (spanBI > 0n) { const spacing = calculateNiceTickSpacingBi(spanBI); currentMajorSpacingBi = spacing.major; currentMinorSpacingBi = spacing.minor; } else { currentMajorSpacingBi = 1n * SCALING_FACTOR; currentMinorSpacingBi = currentMajorSpacingBi / 10n || 1n; }
-
-        // Draw Ticks & Labels... (same logic)
-        if (currentMinorSpacingBi > 0n && currentMajorSpacingBi > 0n) {
-            let remainder = interval.start % currentMinorSpacingBi; if (remainder < 0n) { remainder += currentMinorSpacingBi; } let firstTickTimeBi = interval.start - remainder + (remainder === 0n ? 0n : currentMinorSpacingBi); if (firstTickTimeBi < interval.start) { firstTickTimeBi += currentMinorSpacingBi; } ctx.lineWidth = 1; ctx.strokeStyle = '#666'; ctx.fillStyle = '#333'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
-            for (let tBi = firstTickTimeBi; tBi <= interval.end + currentMinorSpacingBi; tBi += currentMinorSpacingBi) {
-                 if (tBi < interval.start - currentMinorSpacingBi) continue; const x = timeBiToX(tBi); if (x < rulerMargin - 10 || x > rulerEnd + 10) continue; let isMajorTick = false; try { isMajorTick = (tBi % currentMajorSpacingBi === 0n); } catch {} ctx.beginPath(); ctx.moveTo(x, rulerY - (isMajorTick ? 8 : 4)); ctx.lineTo(x, rulerY + (isMajorTick ? 8 : 4)); ctx.stroke(); if (isMajorTick) { if (x >= rulerMargin - 0.1 && x <= rulerEnd + 0.1) { const label = formatTimeBiLabel(tBi); ctx.fillText(label, x, rulerY + 20); } }
-            }
-        } else { console.warn("Final tick spacing invalid or zero span."); }
-
-        // Draw Timeline Elements via Manager
-        // ✅ HumanElement's endTbi is updated inside its draw method now
+    function drawRuler() { /* ... as before ... */
+        const canvasWidth = ctx.canvas.width; const canvasHeight = ctx.canvas.height; const rulerY = canvasHeight * 0.5; const rulerMargin = canvasWidth * 0.1; const rulerWidth = canvasWidth * 0.8; const rulerEnd = rulerMargin + rulerWidth;
+        timelineManager.rulerY = rulerY; ctx.clearRect(0, 0, canvasWidth, canvasHeight); ctx.lineWidth = 2; ctx.strokeStyle = '#333'; ctx.beginPath(); ctx.moveTo(rulerMargin, rulerY); ctx.lineTo(rulerEnd, rulerY); ctx.stroke();
+        const spanBI = interval.end - interval.start; let currentMajorSpacingBi = 0n; let currentMinorSpacingBi = 0n; if (spanBI > 0n) { const spacing = calculateNiceTickSpacingBi(spanBI); currentMajorSpacingBi = spacing.major; currentMinorSpacingBi = spacing.minor; } else { currentMajorSpacingBi = 1n * SCALING_FACTOR; currentMinorSpacingBi = currentMajorSpacingBi / 10n || 1n; }
+        if (currentMinorSpacingBi > 0n && currentMajorSpacingBi > 0n) { let remainder = interval.start % currentMinorSpacingBi; if (remainder < 0n) { remainder += currentMinorSpacingBi; } let firstTickTimeBi = interval.start - remainder + (remainder === 0n ? 0n : currentMinorSpacingBi); if (firstTickTimeBi < interval.start) { firstTickTimeBi += currentMinorSpacingBi; } ctx.lineWidth = 1; ctx.strokeStyle = '#666'; ctx.fillStyle = '#333'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; for (let tBi = firstTickTimeBi; tBi <= interval.end + currentMinorSpacingBi; tBi += currentMinorSpacingBi) { if (tBi < interval.start - currentMinorSpacingBi) continue; const x = timeBiToX(tBi); if (x < rulerMargin - 10 || x > rulerEnd + 10) continue; let isMajorTick = false; try { isMajorTick = (tBi % currentMajorSpacingBi === 0n); } catch {} ctx.beginPath(); ctx.moveTo(x, rulerY - (isMajorTick ? 8 : 4)); ctx.lineTo(x, rulerY + (isMajorTick ? 8 : 4)); ctx.stroke(); if (isMajorTick) { if (x >= rulerMargin - 0.1 && x <= rulerEnd + 0.1) { const label = formatTimeBiLabel(tBi); ctx.fillText(label, x, rulerY + 20); } } } } else { console.warn("Final tick spacing invalid or zero span."); }
         timelineManager.drawElements(ctx, interval, timeBiToX, rulerMargin, rulerEnd);
-
-        // --- Draw 'Now' Line ---
-        // ✅ 3. Update interval.now dynamically EACH FRAME
-        interval.now = dateToCustomBi(new Date());
-        // Ensure 'Now' marker stays within visible bounds if view pans away
-        const nowTbiClampedForDraw = interval.now < interval.start ? interval.start : (interval.now > interval.end ? interval.end : interval.now);
-
-        if (interval.now >= interval.start && interval.now <= interval.end) { // Check if actual 'now' is in view range
-            const nowX = timeBiToX(interval.now); // Use the actual 'now' for X position
-            if (isFinite(nowX)) {
-                ctx.lineWidth = 1.5; ctx.strokeStyle = '#ff0000'; ctx.beginPath(); ctx.moveTo(nowX, rulerY - 15); ctx.lineTo(nowX, rulerY + 15); ctx.stroke();
-                ctx.fillStyle = '#ff0000'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Now', nowX, rulerY - 18);
-            }
-        } else {
-             // Optional: Indicate if 'Now' is off-screen? (Could add text or markers at edges)
-        }
-
-
-        // Draw Cursor Line... (same logic)
-        if (interval.cursor >= CUSTOM_TIME_MIN_BI && interval.cursor >= interval.start && interval.cursor <= interval.end) {
-            const cursorX = timeBiToX(interval.cursor);
-            if (isFinite(cursorX)) { ctx.lineWidth = 1.5; ctx.strokeStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX, rulerY - 12); ctx.lineTo(cursorX, rulerY + 12); ctx.stroke(); ctx.fillStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX - 4, rulerY - 12); ctx.lineTo(cursorX + 4, rulerY - 12); ctx.lineTo(cursorX, rulerY - 18); ctx.closePath(); ctx.fill(); }
-        }
-
-        // Update Info Display...
-        // ✅ Uses the dynamically updated interval.now from this frame
-        infoStartEl.textContent = `${getDateTimeStringFromTbi(interval.start)} (t=${formatTimeBiLabel(interval.start)})`;
-        infoEndEl.textContent = `${getDateTimeStringFromTbi(interval.end)} (t=${formatTimeBiLabel(interval.end)})`;
-        infoCursorEl.textContent = interval.cursor < CUSTOM_TIME_MIN_BI ? 'N/A' : `${getDateTimeStringFromTbi(interval.cursor)} (t=${formatTimeBiLabel(interval.cursor)})`;
-        // Display the dynamically calculated 'Now' value
-        infoNowEl.textContent = `${getDateTimeStringFromTbi(interval.now)} (t=${formatTimeBiLabel(interval.now)})`;
-
+        interval.now = dateToCustomBi(new Date()); const nowTbiClampedForDraw = interval.now < interval.start ? interval.start : (interval.now > interval.end ? interval.end : interval.now); if (interval.now >= interval.start && interval.now <= interval.end) { const nowX = timeBiToX(interval.now); if (isFinite(nowX)) { ctx.lineWidth = 1.5; ctx.strokeStyle = '#ff0000'; ctx.beginPath(); ctx.moveTo(nowX, rulerY - 15); ctx.lineTo(nowX, rulerY + 15); ctx.stroke(); ctx.fillStyle = '#ff0000'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Now', nowX, rulerY - 18); } }
+        if (interval.cursor >= CUSTOM_TIME_MIN_BI && interval.cursor >= interval.start && interval.cursor <= interval.end) { const cursorX = timeBiToX(interval.cursor); if (isFinite(cursorX)) { ctx.lineWidth = 1.5; ctx.strokeStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX, rulerY - 12); ctx.lineTo(cursorX, rulerY + 12); ctx.stroke(); ctx.fillStyle = '#00cc00'; ctx.beginPath(); ctx.moveTo(cursorX - 4, rulerY - 12); ctx.lineTo(cursorX + 4, rulerY - 12); ctx.lineTo(cursorX, rulerY - 18); ctx.closePath(); ctx.fill(); } }
+        infoStartEl.textContent = `${getDateTimeStringFromTbi(interval.start)} (t=${formatTimeBiLabel(interval.start)})`; infoEndEl.textContent = `${getDateTimeStringFromTbi(interval.end)} (t=${formatTimeBiLabel(interval.end)})`; infoCursorEl.textContent = interval.cursor < CUSTOM_TIME_MIN_BI ? 'N/A' : `${getDateTimeStringFromTbi(interval.cursor)} (t=${formatTimeBiLabel(interval.cursor)})`; infoNowEl.textContent = `${getDateTimeStringFromTbi(interval.now)} (t=${formatTimeBiLabel(interval.now)})`;
     } // End drawRuler
 
     function redraw() { requestAnimationFrame(drawRuler); }
 
-     // --- Event Handlers ---
-     function handleResize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; redraw(); }
-     function handleMouseMove(event) { pos.x = event.clientX; pos.y = event.clientY; }
-     function handleMouseDown(event) { /* ... as before ... */
-         if (event.button !== 0) return; pos.x = event.clientX; pos.y = event.clientY; const rulerY = canvas.height * 0.5; if (Math.abs(pos.y - rulerY) < 50) { interval.cursor = xToTimeBi(pos.x); console.log("Cursor set to tBi:", interval.cursor.toString(), " -> ", getDateTimeStringFromTbi(interval.cursor)); redraw(); } }
-    function handleWheel(event) { /* ... as before ... */
-        event.preventDefault(); const scrollDelta = event.deltaY; const zoomFactor = scrollDelta < 0 ? 0.80 : 1.20; const minSpanBi = 10n; const timeAtMouseBi = xToTimeBi(event.clientX); const currentSpanBi = interval.end - interval.start; const maxPossibleSpan = CUSTOM_TIME_MAX_BI - CUSTOM_TIME_MIN_BI; if (currentSpanBi <= minSpanBi && zoomFactor < 1) return; if (currentSpanBi >= maxPossibleSpan && zoomFactor > 1) return; let newSpanNum = Number(currentSpanBi) * zoomFactor; let newSpanBi = BigInt(Math.round(newSpanNum)); newSpanBi = newSpanBi > minSpanBi ? newSpanBi : minSpanBi; newSpanBi = newSpanBi > maxPossibleSpan ? maxPossibleSpan : newSpanBi; let ratio = 0.5; if (currentSpanBi > 0n) { const mouseOffsetNum = Number(timeAtMouseBi - interval.start); const currentSpanNum = Number(currentSpanBi); ratio = currentSpanNum === 0 ? 0.5 : mouseOffsetNum / currentSpanNum; ratio = Math.max(0, Math.min(1, ratio)); } const offsetNum = Number(newSpanBi) * ratio; const offsetBi = BigInt(Math.round(offsetNum)); let newStart = timeAtMouseBi - offsetBi; let newEnd = newStart + newSpanBi; let needsAdjustment = false; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + newSpanBi; needsAdjustment = true; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; if (!needsAdjustment) { newStart = newEnd - newSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; } if (newStart >= newEnd) { console.warn("Zoom resulted in start >= end."); if (newStart === CUSTOM_TIME_MAX_BI) { newStart = CUSTOM_TIME_MAX_BI - minSpanBi; newEnd = CUSTOM_TIME_MAX_BI; } else { newEnd = newStart + minSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; } interval.start = newStart; interval.end = newEnd; redraw();
+    // --- Helper: Clamp Function ---
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
     }
+
+     // --- Helper: Calculate Distance ---
+     function getDistance(p1, p2) {
+         const dx = p1.x - p2.x;
+         const dy = p1.y - p2.y;
+         return Math.sqrt(dx * dx + dy * dy);
+     }
+
+
+     // --- EVENT HANDLERS ---
+
+     function handleResize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; redraw(); }
+     function handleMouseMove(event) { pos.x = event.clientX; pos.y = event.clientY; } // For potential desktop features
+
+     // --- MOUSE Interaction Handlers ---
+     // --- MOUSE Interaction Handlers ---
+
+     function handleMouseDown(event) {
+         // Ignore right clicks or if a touch interaction is already happening
+         if (event.button !== 0 || isTouching) return;
+         pos.x = event.clientX; pos.y = event.clientY;
+         const rulerY = canvas.height * 0.5;
+         // Set cursor only if clicking near the ruler vertically
+         if (Math.abs(pos.y - rulerY) < 50) { // Generous click tolerance on Y axis
+             interval.cursor = xToTimeBi(pos.x);
+             console.log("Cursor set (mouse):", interval.cursor.toString(), " -> ", getDateTimeStringFromTbi(interval.cursor));
+             redraw();
+         }
+     }
+
+     // ✅ CORRECTED: Mouse Wheel handler with original boundary checks restored
+     function handleWheel(event) {
+        // Prevent default page scroll only if wheel event is on the canvas
+        if (event.target === canvas) {
+            event.preventDefault();
+        } else {
+            return; // Don't handle wheel events outside the canvas
+        }
+
+        const scrollDelta = event.deltaY;
+        const isZoomingIn = scrollDelta < 0; // True if scrolling up/zooming in
+        const zoomFactor = isZoomingIn ? 0.80 : 1.20;
+
+        const currentSpanBi = interval.end - interval.start;
+        const minSpanBi = 10n; // Minimum span in tBi units
+        const maxPossibleSpan = CUSTOM_TIME_MAX_BI - CUSTOM_TIME_MIN_BI;
+
+        // --- Boundary Checks ---
+        // Stop zooming IN further if already at minimum span
+        if (isZoomingIn && currentSpanBi <= minSpanBi) {
+            // console.log("Wheel: Min zoom reached.");
+            return;
+        }
+        // Stop zooming OUT further if already at maximum span
+        if (!isZoomingIn && currentSpanBi >= maxPossibleSpan) {
+            // console.log("Wheel: Max zoom reached.");
+            return;
+        }
+        // --- End Boundary Checks ---
+
+
+        const timeAtMouseBi = xToTimeBi(event.clientX); // Zoom centered on mouse pointer
+
+        // Calculate new span
+        let newSpanNum = Number(currentSpanBi) * zoomFactor;
+        let newSpanBi = BigInt(Math.max(1, Math.round(newSpanNum))); // Ensure span > 0
+
+        // Clamp the *calculated* span immediately AFTER calculation,
+        // BEFORE using it to find start/end. This prevents edge cases where
+        // float math might make it slightly exceed bounds before the check above.
+        newSpanBi = newSpanBi < minSpanBi ? minSpanBi : newSpanBi;
+        newSpanBi = newSpanBi > maxPossibleSpan ? maxPossibleSpan : newSpanBi;
+
+
+        // Determine the ratio of the mouse pointer's position within the current span
+        let ratio = 0.5; // Default to center if span is zero or calculation fails
+        if (currentSpanBi > 0n) {
+            const mouseOffsetNum = Number(timeAtMouseBi - interval.start);
+            const currentSpanNum = Number(currentSpanBi);
+            if (currentSpanNum !== 0 && isFinite(mouseOffsetNum)) {
+                ratio = mouseOffsetNum / currentSpanNum;
+                ratio = clamp(ratio, 0, 1); // Clamp ratio between 0 and 1 (using helper)
+            }
+        }
+
+        // Calculate the new start time based on keeping the time under the mouse pointer fixed
+        const offsetNum = Number(newSpanBi) * ratio;
+        if (!isFinite(offsetNum)) { console.warn("Invalid offset in wheel zoom"); return; } // Avoid NaN
+        const offsetBi = BigInt(Math.round(offsetNum));
+
+        let newStart = timeAtMouseBi - offsetBi;
+        let newEnd = newStart + newSpanBi;
+
+        // --- Enforce Absolute Bounds for start/end (Final clamping) ---
+         let needsAdjustment = false;
+         if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + newSpanBi; needsAdjustment = true; }
+         // Check end bound AFTER potential start adjustment
+         if (newEnd > CUSTOM_TIME_MAX_BI) {
+             newEnd = CUSTOM_TIME_MAX_BI;
+             // Adjust start only if end clamp was the only adjustment needed
+             if (!needsAdjustment) { newStart = newEnd - newSpanBi; }
+             // Re-clamp start just in case
+             newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart;
+         }
+         // Final check: ensure start < end after all clamping
+         if (newStart >= newEnd) {
+             console.warn("Wheel Zoom resulted in start >= end after clamping. Adjusting.");
+             // Attempt to recover based on which boundary might be causing issue
+             if (newEnd <= CUSTOM_TIME_MIN_BI + minSpanBi) { // If stuck near min
+                 newStart = CUSTOM_TIME_MIN_BI;
+                 newEnd = newStart + minSpanBi;
+             } else { // Otherwise assume stuck near max or other issue
+                 newStart = newEnd - minSpanBi;
+             }
+              // Final re-clamp after recovery attempt
+              newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart;
+              newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd;
+         }
+
+
+        interval.start = newStart;
+        interval.end = newEnd;
+        redraw(); // Redraw with the new interval
+     }
+
+    // --- ✅ Need Clamp Helper ---
+    function clamp(value, min, max) {
+        // Ensure min <= max before clamping
+        if (min > max) { [min, max] = [max, min]; } // Swap if min > max
+        return Math.max(min, Math.min(max, value));
+    }
+
+    // --- ✅ TOUCH EVENT HANDLERS ---
+    // (Keep the touch handlers as they were in the previous version)
+    function handleTouchStart(event) { /* ... Touch code from previous step ... */
+        if (event.target === canvas) { event.preventDefault(); } else { return; }
+        isTouching = true; isPanning = false; isPinching = false;
+        touchPoints = Array.from(event.touches).map(t => ({ id: t.identifier, x: t.clientX, y: t.clientY, initialX: t.clientX, initialY: t.clientY }));
+        touchStartTime = performance.now();
+        if (touchPoints.length === 1) { isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; } else if (touchPoints.length === 2) { isPanning = false; isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } else { isPanning = false; isPinching = false; }
+    }
+    function handleTouchMove(event) { /* ... Touch code from previous step ... */
+        if (!isTouching) return; if (event.target === canvas) { event.preventDefault(); } else { return; }
+        const currentTouches = Array.from(event.touches); let activeTouchCount = 0;
+        touchPoints.forEach(tp => { const current = currentTouches.find(ct => ct.identifier === tp.id); if (current) { tp.x = current.clientX; tp.y = current.clientY; activeTouchCount++; } });
+        touchPoints = touchPoints.filter(tp => currentTouches.some(ct => ct.identifier === tp.id));
+        if (isPinching && touchPoints.length < 2) { isPinching = false; if (touchPoints.length === 1) { isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; touchStartTime = performance.now(); } }
+        if (isPanning && touchPoints.length !== 1) { isPanning = false; if (touchPoints.length === 2) { isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } }
+        if (isPinching && touchPoints.length === 2) { const currentDistance = getDistance(touchPoints[0], touchPoints[1]); if (initialPinchDistance > 1 && currentDistance > 1) { const zoomFactor = initialPinchDistance / currentDistance; const pinchCenterX = (touchPoints[0].x + touchPoints[1].x) / 2; const timeAtPinchCenterBi = xToTimeBi(pinchCenterX); const currentSpanBi = interval.end - interval.start; const minSpanBi = 10n; const maxPossibleSpan = CUSTOM_TIME_MAX_BI - CUSTOM_TIME_MIN_BI; let newSpanNum = Number(currentSpanBi) * zoomFactor; let newSpanBi = BigInt(Math.max(1, Math.round(newSpanNum))); newSpanBi = newSpanBi > minSpanBi ? newSpanBi : minSpanBi; newSpanBi = newSpanBi > maxPossibleSpan ? maxPossibleSpan : newSpanBi; if (newSpanBi !== currentSpanBi) { let ratio = 0.5; if (currentSpanBi > 0n) { const centerOffsetNum = Number(timeAtPinchCenterBi - interval.start); const currentSpanNum = Number(currentSpanBi); if(currentSpanNum !== 0 && isFinite(centerOffsetNum)) { ratio = centerOffsetNum / currentSpanNum; ratio = clamp(ratio, 0, 1); } } const offsetNum = Number(newSpanBi) * ratio; if (!isFinite(offsetNum)) { console.warn("Invalid offset (pinch)"); return; } const offsetBi = BigInt(Math.round(offsetNum)); let newStart = timeAtPinchCenterBi - offsetBi; let newEnd = newStart + newSpanBi; let needsAdjustment = false; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + newSpanBi; needsAdjustment = true; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; if (!needsAdjustment) { newStart = newEnd - newSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; } if (newStart >= newEnd) { console.warn("Pinch Zoom resulted in start >= end. Clamping."); if (newEnd <= CUSTOM_TIME_MIN_BI + minSpanBi) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + minSpanBi; } else { newStart = newEnd - minSpanBi; } newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; } interval.start = newStart; interval.end = newEnd; initialPinchDistance = currentDistance; redraw(); } } }
+        else if (isPanning && touchPoints.length === 1) { const currentX = touchPoints[0].x; const deltaX = currentX - panStartX; const canvasWidth = ctx.canvas.width; const rulerWidth = canvasWidth * 0.8; const currentSpanBi = interval.end - interval.start; if (rulerWidth > 0 && currentSpanBi > 0n) { const tBiPerPixelNum = Number(currentSpanBi) / rulerWidth; if (!isFinite(tBiPerPixelNum)) { console.warn("Invalid tBiPerPixel"); return; } const deltaTbi = BigInt(Math.round(tBiPerPixelNum * deltaX)); let newStart = panIntervalStartInitial - deltaTbi; let newEnd = newStart + currentSpanBi; if (newStart < CUSTOM_TIME_MIN_BI) { newStart = CUSTOM_TIME_MIN_BI; newEnd = newStart + currentSpanBi; } if (newEnd > CUSTOM_TIME_MAX_BI) { newEnd = CUSTOM_TIME_MAX_BI; newStart = newEnd - currentSpanBi; } newStart = newStart < CUSTOM_TIME_MIN_BI ? CUSTOM_TIME_MIN_BI : newStart; newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; if (newStart >= newEnd) { console.warn("Pan resulted in invalid interval"); if(newStart === CUSTOM_TIME_MIN_BI) newEnd = newStart + minSpanBi; else if(newEnd === CUSTOM_TIME_MAX_BI) newStart = newEnd - minSpanBi; else { newStart = interval.start; newEnd = interval.end; } newEnd = newEnd > CUSTOM_TIME_MAX_BI ? CUSTOM_TIME_MAX_BI : newEnd; } interval.start = newStart; interval.end = newEnd; redraw(); } }
+    }
+    function handleTouchEnd(event) { /* ... Touch code from previous step ... */
+        if (!isTouching) return; const changedTouchesOnCanvas = Array.from(event.changedTouches).some(ct => touchPoints.some(tp => tp.id === ct.identifier)); if (changedTouchesOnCanvas && event.target === canvas) { event.preventDefault(); }
+        const touchDuration = performance.now() - touchStartTime; const liftedTouches = Array.from(event.changedTouches);
+        liftedTouches.forEach(lt => { const liftedPoint = touchPoints.find(tp => tp.id === lt.identifier); if (liftedPoint && isPanning && touchPoints.length === 1) { const deltaX = lt.clientX - liftedPoint.initialX; const deltaY = lt.clientY - liftedPoint.initialY; const distanceMoved = Math.sqrt(deltaX * deltaX + deltaY * deltaY); if (touchDuration < TAP_THRESHOLD_MS && distanceMoved < TAP_THRESHOLD_PX) { const rulerY = canvas.height * 0.5; if (Math.abs(lt.clientY - rulerY) < 50) { interval.cursor = xToTimeBi(lt.clientX); console.log("Cursor set (tap):", interval.cursor.toString(), " -> ", getDateTimeStringFromTbi(interval.cursor)); redraw(); } } } });
+        touchPoints = touchPoints.filter(tp => !liftedTouches.some(lt => lt.identifier === tp.id));
+        if (touchPoints.length === 0) { isTouching = false; isPanning = false; isPinching = false; } else if (touchPoints.length === 1) { isPinching = false; isPanning = true; panStartX = touchPoints[0].x; panIntervalStartInitial = interval.start; touchStartTime = performance.now(); } else if (touchPoints.length >= 2) { if (touchPoints.length === 2) { isPanning = false; isPinching = true; initialPinchDistance = getDistance(touchPoints[0], touchPoints[1]); } else { isPanning = false; isPinching = false; } }
+    }
+    function handleTouchCancel(event) { /* ... Touch code from previous step ... */
+         touchPoints = []; isTouching = false; isPanning = false; isPinching = false;
+    }
+
+     // --- Helper: Calculate Distance ---
+     function getDistance(p1, p2) { /* ... Touch code from previous step ... */
+         const dx = p1.x - p2.x; const dy = p1.y - p2.y; return Math.sqrt(dx * dx + dy * dy);
+     }
 
     // --- Initialization ---
     window.addEventListener('resize', handleResize);
+
+    // Mouse Listeners
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('wheel', handleWheel);
+    canvas.addEventListener('wheel', handleWheel, { passive: false }); // Keep passive:false
+
+    // Touch Listeners
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleTouchCancel);
+
+
     handleResize(); // Initial setup and draw
 </script>
 
